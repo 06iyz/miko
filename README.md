@@ -54,7 +54,7 @@
 
 | 分類              | 技術                       |
 | ----------------- | -------------------------- |
-| Language          | TypeScript                 |
+| 言語          | TypeScript                 |
 | Frontend          | React                      |
 | Backend           | Node.js / Express          |
 | Map               | Leaflet / React Leaflet    |
