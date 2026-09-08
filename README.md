@@ -1,5 +1,3 @@
-# miko
-
 # Inclusive Map
 
 ## 📌 概要
