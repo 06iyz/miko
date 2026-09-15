@@ -12,8 +12,8 @@ import MyPage from './pages/MyPage'
 function App() {
   return (
     <BrowserRouter>
-      <div className="phone-frame">
-        <div className="phone-screen">
+      <div className="app-shell">
+        <div className="app-shell__screen">
           <Routes>
             <Route path="/" element={<Splash />} />
             <Route path="/home" element={<Home />} />
