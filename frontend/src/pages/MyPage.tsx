@@ -21,7 +21,7 @@ const menuItems = [
 
 export default function MyPage() {
   return (
-    <div className="screen">
+    <div className="screen screen--narrow">
       <header className="page-header page-header--with-action">
         <h1>マイページ</h1>
         <button type="button" className="icon-btn" aria-label="設定">

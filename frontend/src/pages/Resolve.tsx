@@ -13,7 +13,7 @@ export default function Resolve() {
   const [comment, setComment] = useState('')
 
   return (
-    <div className="screen resolve-screen">
+    <div className="screen screen--narrow resolve-screen">
       <div className="screen__scroll resolve-body">
         <div className="resolve-confetti" aria-hidden="true">
           🎉
