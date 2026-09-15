@@ -17,7 +17,6 @@
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 22px;
-  --shadow-frame: 0 24px 60px -20px rgba(22, 22, 42, 0.35);
 
   font: 15px/1.5 'Hiragino Sans', 'Yu Gothic', system-ui, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light;
@@ -55,11 +54,13 @@ p {
   margin: 0;
 }
 
-/* ---------- Phone frame ---------- */
+/* ---------- App shell ---------- */
+/* Mobile-first single column. On wider viewports it stays a centered
+   readable column instead of a decorative "phone" mockup. */
 
-.phone-frame {
+.app-shell {
   width: 100%;
-  max-width: 430px;
+  max-width: 480px;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
@@ -67,19 +68,14 @@ p {
   flex-direction: column;
 }
 
-@media (min-width: 540px) {
-  .phone-frame {
-    margin: 28px 0;
-    height: 900px;
-    min-height: 0;
-    border-radius: 36px;
-    box-shadow: var(--shadow-frame);
-    overflow: hidden;
-    border: 8px solid #16162a;
+@media (min-width: 480px) {
+  .app-shell {
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
 }
 
-.phone-screen {
+.app-shell__screen {
   flex: 1;
   display: flex;
   flex-direction: column;
