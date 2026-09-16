@@ -116,3 +116,17 @@ Helpを投稿
 マッチング
     ↓
 チャット / 現地でサポート
+```
+
+---
+
+## 🛠️ セットアップ
+
+このリポジトリは npm workspaces のモノレポ構成です（`frontend` / `backend` を1つの `package-lock.json` で管理しています）。
+
+**必ずリポジトリのルートで** 以下を実行してください。`frontend/` や `backend/` のフォルダに `cd` して `npm install` すると、ルートと矛盾する `package-lock.json` が新たに作られてしまい、他の人の環境でエラーの原因になります。
+
+```bash
+npm install       # 依存関係のインストール（ルートで実行）
+npm run dev       # フロント・バックエンドを同時に起動
+```
