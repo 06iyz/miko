@@ -21,7 +21,7 @@ export default function PostHelp() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen screen--narrow">
       <TopBar title="Helpを投稿する" onClose />
 
       <div className="screen__scroll post-form">

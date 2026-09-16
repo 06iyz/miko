@@ -11,7 +11,7 @@ export default function HelpDetail() {
   const walkMinutes = Math.max(1, Math.round(help.distanceM / 80))
 
   return (
-    <div className="screen">
+    <div className="screen screen--narrow">
       <TopBar title="Helpの詳細" />
 
       <div className="screen__scroll">

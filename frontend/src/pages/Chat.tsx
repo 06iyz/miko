@@ -28,7 +28,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen screen--narrow">
       <header className="chat-header">
         <button type="button" className="top-bar__icon-btn" onClick={() => navigate(-1)} aria-label="戻る">
           <BackIcon />

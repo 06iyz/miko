@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import Sidebar from './components/Sidebar'
 import Splash from './pages/Splash'
 import Home from './pages/Home'
 import MapView from './pages/MapView'
@@ -9,24 +10,33 @@ import Chat from './pages/Chat'
 import Resolve from './pages/Resolve'
 import MyPage from './pages/MyPage'
 
+function AppLayout() {
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="app-shell__main">
+        <Outlet />
+      </div>
+    </div>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <div className="app-shell">
-        <div className="app-shell__screen">
-          <Routes>
-            <Route path="/" element={<Splash />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/map" element={<MapView />} />
-            <Route path="/post/new" element={<PostHelp />} />
-            <Route path="/help/:id" element={<HelpDetail />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/help/:id/chat" element={<Chat />} />
-            <Route path="/help/:id/resolve" element={<Resolve />} />
-            <Route path="/mypage" element={<MyPage />} />
-          </Routes>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/" element={<Splash />} />
+        <Route element={<AppLayout />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/map" element={<MapView />} />
+          <Route path="/post/new" element={<PostHelp />} />
+          <Route path="/help/:id" element={<HelpDetail />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/help/:id/chat" element={<Chat />} />
+          <Route path="/help/:id/resolve" element={<Resolve />} />
+          <Route path="/mypage" element={<MyPage />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   )
 }

@@ -6,7 +6,7 @@ export default function Messages() {
   const navigate = useNavigate()
 
   return (
-    <div className="screen">
+    <div className="screen screen--narrow">
       <header className="page-header">
         <h1>メッセージ</h1>
       </header>
