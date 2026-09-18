@@ -9,6 +9,8 @@ import Messages from './pages/Messages'
 import Chat from './pages/Chat'
 import Resolve from './pages/Resolve'
 import MyPage from './pages/MyPage'
+import { useAuth } from './contexts/AuthContext'
+import Login from './pages/Login'
 
 function AppLayout() {
   return (
@@ -22,6 +24,15 @@ function AppLayout() {
 }
 
 function App() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <p>読み込み中...</p>
+  }
+
+  if (!user) {
+    return <Login />
+  }
   return (
     <BrowserRouter>
       <Routes>
