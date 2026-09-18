@@ -1062,6 +1062,40 @@ p {
   gap: 16px;
 }
 
+.profile-card--account {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profile-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.profile-card__account-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-card__name {
+  font-weight: 700;
+}
+
+.profile-card__email {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.profile-card__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .profile-card__avatar {
   width: 58px;
   height: 58px;

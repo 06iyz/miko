@@ -8,7 +8,14 @@ export default function Chat() {
   const { id } = useParams()
   const navigate = useNavigate()
   const help = mockHelps.find((h) => h.id === id) ?? mockHelps[0]
-  const conversation = mockConversations.find((c) => c.helpId === id) ?? mockConversations[0]
+  const conversation =
+  mockConversations.find((c) => c.helpId === help.id) ?? {
+    helpId: help.id,
+    partner: help.author,
+    lastMessage: '',
+    lastMessageTime: '',
+    messages: [],
+  }
 
   const [messages, setMessages] = useState<ChatMessage[]>(conversation.messages)
   const [draft, setDraft] = useState('')
@@ -38,7 +45,7 @@ export default function Chat() {
           <p className="chat-header__subtitle">{help.title}</p>
         </div>
         <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(`/help/${help.id}/resolve`)}>
-          解決する
+          解決済み
         </button>
       </header>
 
