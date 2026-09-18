@@ -1,6 +1,5 @@
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
-import Splash from './pages/Splash'
 import Home from './pages/Home'
 import MapView from './pages/MapView'
 import PostHelp from './pages/PostHelp'
@@ -36,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Splash />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/map" element={<MapView />} />
