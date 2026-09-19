@@ -1,6 +1,5 @@
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
-import Splash from './pages/Splash'
 import Home from './pages/Home'
 import MapView from './pages/MapView'
 import PostHelp from './pages/PostHelp'
@@ -9,6 +8,8 @@ import Messages from './pages/Messages'
 import Chat from './pages/Chat'
 import Resolve from './pages/Resolve'
 import MyPage from './pages/MyPage'
+import { useAuth } from './contexts/AuthContext'
+import Login from './pages/Login'
 
 function AppLayout() {
   return (
@@ -22,10 +23,19 @@ function AppLayout() {
 }
 
 function App() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <p>読み込み中...</p>
+  }
+
+  if (!user) {
+    return <Login />
+  }
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Splash />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/map" element={<MapView />} />

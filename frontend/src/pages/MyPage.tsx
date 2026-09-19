@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { mockUser } from '../data/mockHelps'
+import { useAuth } from '../contexts/AuthContext'
 import BottomNav from '../components/BottomNav'
 import {
   BellIcon,
@@ -20,6 +22,14 @@ const menuItems = [
 ]
 
 export default function MyPage() {
+  const { user, loading } = useAuth()
+  const [failedPhotoURL, setFailedPhotoURL] = useState<string | null>(null)
+
+  if (loading) return <p>読み込み中...</p>
+  if (!user) return <p>ログインしてください</p>
+
+  const displayName = user.displayName || '名前未設定'
+
   return (
     <div className="screen screen--narrow">
       <header className="page-header page-header--with-action">
@@ -30,9 +40,25 @@ export default function MyPage() {
       </header>
 
       <div className="screen__scroll">
-        <div className="profile-card">
-          <div className="profile-card__avatar" aria-hidden="true">
-            {mockUser.name.slice(0, 1)}
+        <div className="profile-card profile-card--account">
+          <div className="profile-card__identity">
+            <div className="profile-card__avatar">
+              {user.photoURL && user.photoURL !== failedPhotoURL ? (
+                <img
+                  className="profile-card__photo"
+                  src={user.photoURL}
+                  alt={`${displayName}のプロフィール画像`}
+                  referrerPolicy="no-referrer"
+                  onError={() => setFailedPhotoURL(user.photoURL)}
+                />
+              ) : (
+                <span aria-hidden="true">{Array.from(displayName)[0]}</span>
+              )}
+            </div>
+            <div className="profile-card__account-details">
+              <p className="profile-card__name">{displayName}</p>
+              <p className="profile-card__email">{user.email || 'メールアドレス未設定'}</p>
+            </div>
           </div>
           <div className="profile-card__stats">
             <div>
