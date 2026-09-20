@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /helpPosts/{postId} {
+      // 投稿一覧はログイン済みユーザーだけが読める。
+      allow read: if request.auth != null;
+
+      // 投稿者の UID は、必ず Firebase Authentication の本人と一致させる。
+      allow create: if request.auth != null
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == 'open';
+
+      // 投稿の編集・削除は投稿者本人だけに限定する。
+      allow update, delete: if request.auth != null
+        && resource.data.authorUid == request.auth.uid;
+    }
+  }
+}

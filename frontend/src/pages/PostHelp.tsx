@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import type { HelpCategory, HelpType } from '../types'
 import { LocationIcon } from '../components/icons'
+import { useAuth } from '../contexts/AuthContext'
+import { createHelpPost } from '../lib/helpPosts'
 
 const categories: HelpCategory[] = ['移動', '案内', '子育て', '荷物', '言葉', 'その他']
 const MAX_LENGTH = 200
@@ -12,12 +14,32 @@ export default function PostHelp() {
   const [category, setCategory] = useState<HelpCategory>('移動')
   const [description, setDescription] = useState('')
   const [type, setType] = useState<HelpType>('come')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const { user } = useAuth()
 
   const canSubmit = description.trim().length > 0
 
-  const handleSubmit = () => {
-    if (!canSubmit) return
-    navigate('/home')
+  const handleSubmit = async () => {
+    if (!canSubmit || !user || isSubmitting) return
+
+    setIsSubmitting(true)
+    setError('')
+
+    try {
+      await createHelpPost(user, {
+        category,
+        description,
+        type,
+        location: '神戸市中央区三宮町1丁目',
+      })
+      navigate('/home')
+    } catch (submitError) {
+      console.error('Failed to create help post', submitError)
+      setError('投稿できませんでした。時間をおいてもう一度お試しください。')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -78,13 +100,14 @@ export default function PostHelp() {
       </div>
 
       <div className="screen__footer">
+        {error && <p className="form-error" role="alert">{error}</p>}
         <button
           type="button"
           className="btn btn--primary btn--block"
-          disabled={!canSubmit}
+          disabled={!canSubmit || !user || isSubmitting}
           onClick={handleSubmit}
         >
-          投稿する
+          {isSubmitting ? '投稿中...' : '投稿する'}
         </button>
       </div>
     </div>
