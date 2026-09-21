@@ -45,6 +45,12 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 button {
@@ -99,7 +105,9 @@ p {
 
 .screen__scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 
 .screen__footer {
@@ -174,12 +182,14 @@ p {
 
 .bottom-nav {
   display: flex;
+  flex-shrink: 0;
   border-top: 1px solid var(--line);
   background: #fff;
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
 }
 
 .bottom-nav__item {
+  min-width: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -480,6 +490,86 @@ p {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---------- Responsive adjustments ---------- */
+
+@media (min-width: 720px) and (max-width: 879px) {
+  .screen--narrow {
+    max-width: 680px;
+  }
+
+  .help-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .map-canvas {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --gutter: 16px;
+  }
+
+  .tabs {
+    gap: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs__item {
+    flex: 0 0 auto;
+    font-size: 13px;
+  }
+
+  .near-banner {
+    align-items: flex-start;
+    font-size: 13.5px;
+  }
+
+  .help-list {
+    grid-template-columns: 1fr;
+  }
+
+  .help-card {
+    padding: 11px;
+    gap: 10px;
+  }
+
+  .help-card__thumb {
+    width: 46px;
+    height: 46px;
+    font-size: 21px;
+  }
+
+  .help-tag {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .map-preview__actions {
+    flex-direction: column;
+  }
+
+  .conversation-item {
+    gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .conversation-item__time {
+    font-size: 11px;
+  }
+
+  .chat-bubble-row {
+    max-width: 88%;
+  }
 }
 
 .help-card__meta {
