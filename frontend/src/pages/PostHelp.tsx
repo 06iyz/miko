@@ -33,6 +33,13 @@ export default function PostHelp() {
   const [location, setLocation] = useState('')
   const [requesterFeature, setRequesterFeature] = useState('')
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [locationError, setLocationError] = useState('')
+  const [approximateCoordinates, setApproximateCoordinates] = useState<{
+    latitude: number
+    longitude: number
+    accuracyMeters: number
+  } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { user } = useAuth()
@@ -49,7 +56,7 @@ export default function PostHelp() {
     setError('')
 
     try {
-      await createHelpPost(user, { category, description, type, location, requesterFeature })
+      await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
       navigate('/home')
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
@@ -62,6 +69,38 @@ export default function PostHelp() {
   const closeLocationDialog = () => {
     setIsLocationDialogOpen(false)
     window.setTimeout(() => locationInputRef.current?.focus(), 0)
+  }
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('このブラウザでは現在地を取得できません。住所や目印を手入力してください。')
+      return
+    }
+
+    setIsGettingLocation(true)
+    setLocationError('')
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // 小数第3位までに丸めると、緯度・経度ともおよそ100m単位になる。
+        const latitude = Number(position.coords.latitude.toFixed(3))
+        const longitude = Number(position.coords.longitude.toFixed(3))
+        const accuracyMeters = Math.round(position.coords.accuracy)
+
+        setApproximateCoordinates({ latitude, longitude, accuracyMeters })
+        setLocation('現在地付近（約100mの範囲）')
+        setIsGettingLocation(false)
+        setIsLocationDialogOpen(false)
+        window.setTimeout(() => locationInputRef.current?.focus(), 0)
+      },
+      (positionError) => {
+        const message = positionError.code === positionError.PERMISSION_DENIED
+          ? '位置情報の利用が許可されませんでした。住所や目印を手入力してください。'
+          : '現在地を取得できませんでした。電波状況を確認して、もう一度お試しください。'
+        setLocationError(message)
+        setIsGettingLocation(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
   }
 
   return (
@@ -177,7 +216,7 @@ export default function PostHelp() {
               <span className="post-step__number">3</span>
               <div>
                 <h2>現在地</h2>
-                <p>投稿時の現在地が自動で設定されます。</p>
+                <p>現在地から選ぶか、住所・目印を入力してください。</p>
               </div>
             </div>
             <div className="post-location-field">
@@ -185,13 +224,17 @@ export default function PostHelp() {
               <input
                 ref={locationInputRef}
                 value={location}
-                onChange={(event) => setLocation(event.target.value)}
+                onChange={(event) => {
+                  setLocation(event.target.value)
+                  setApproximateCoordinates(null)
+                }}
                 placeholder={LOCATION_PLACEHOLDER}
                 aria-label="場所と目印"
               />
-              <button type="button" className="post-location-refresh" onClick={() => setIsLocationDialogOpen(true)}>◎ 現在地について</button>
+              <button type="button" className="post-location-refresh" onClick={() => setIsLocationDialogOpen(true)}>◎ 現在地から選ぶ</button>
             </div>
-            <p className="post-location-note">住所・施設名・目印など、助けに来る人が分かる範囲で入力してください。</p>
+            <p className="post-location-note">現在地から選ぶか、住所・施設名・目印を入力してください。現在地を選んだ後も、目印を追記できます。</p>
+            {locationError && <p className="post-location-error" role="alert">{locationError}</p>}
           </section>
         </main>
 
@@ -237,14 +280,19 @@ export default function PostHelp() {
         <div className="post-location-dialog-backdrop" role="presentation" onMouseDown={() => setIsLocationDialogOpen(false)}>
           <section className="post-location-dialog" role="dialog" aria-modal="true" aria-labelledby="location-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="post-location-dialog__icon" aria-hidden="true"><LocationIcon width={28} height={28} /></div>
-            <h2 id="location-dialog-title">現在地の共有について</h2>
-            <p>正確な位置情報を自動で公開することはありません。投稿には、あなたが入力した住所・施設名・目印だけが表示されます。</p>
+            <h2 id="location-dialog-title">現在地から選びますか？</h2>
+            <p>次にブラウザとスマートフォンから位置情報の利用確認が表示されます。許可しても、正確な位置情報をそのまま公開することはありません。</p>
             <ul>
-              <li>「大阪市北区梅田１丁目」のように大まかな場所を書く</li>
-              <li>「駅前の自動販売機の近く」などの目印を書く</li>
-              <li>部屋番号・電話番号などの個人情報は書かない</li>
+              <li>保存する位置は約100m単位に丸めます</li>
+              <li>取得後に「駅前の自動販売機の近く」などの目印を追記できます</li>
+              <li>部屋番号・電話番号などの個人情報は書かないでください</li>
             </ul>
-            <button type="button" onClick={closeLocationDialog}>場所を入力する</button>
+            <div className="post-location-dialog__actions">
+              <button type="button" className="post-location-dialog__cancel" onClick={closeLocationDialog}>手入力する</button>
+              <button type="button" onClick={getCurrentLocation} disabled={isGettingLocation}>
+                {isGettingLocation ? '現在地を取得中...' : '現在地を取得する'}
+              </button>
+            </div>
           </section>
         </div>
       )}

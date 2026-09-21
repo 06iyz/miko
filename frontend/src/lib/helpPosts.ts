@@ -9,6 +9,11 @@ type CreateHelpPostInput = {
   type: HelpType
   location: string
   requesterFeature?: string
+  approximateCoordinates?: {
+    latitude: number
+    longitude: number
+    accuracyMeters: number
+  } | null
 }
 
 function createTitle(description: string) {
@@ -31,6 +36,8 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     type: input.type,
     location: input.location,
     requesterFeature: input.requesterFeature?.trim() || null,
+    // 現在地を使った場合も、正確な座標ではなく約100m単位に丸めた値だけを保存する。
+    approximateCoordinates: input.approximateCoordinates ?? null,
     status: 'open',
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',

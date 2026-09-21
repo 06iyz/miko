@@ -60,6 +60,7 @@
 .post-location-field input::placeholder { color: #8ca0b4; font-weight: 500; }
 .post-location-refresh { margin-left: auto; min-height: 38px; padding: 0 13px; border: 1px solid #cbd9e4; border-radius: 10px; background: #fff; color: #315371; font-weight: 700; cursor: pointer; }
 .post-location-note { margin: 7px 0 0 52px; color: #7388a0; font-size: 12px; }
+.post-location-error { margin: 7px 0 0 52px; color: #b42318 !important; font-size: 12px !important; font-weight: 700; }
 
 .post-page__aside { display: grid; align-content: start; gap: 16px; }
 .post-aside-card { padding: 20px; border-radius: 15px; background: #fff; box-shadow: 0 7px 22px rgba(53, 86, 110, .05); }
@@ -89,7 +90,10 @@
 .post-location-dialog h2 { margin: 16px 0 8px; font-size: 21px; }
 .post-location-dialog p { color: #5e748d; line-height: 1.7; }
 .post-location-dialog ul { margin: 16px 0 22px; padding-left: 22px; color: #4d657e; line-height: 1.85; font-size: 14px; }
-.post-location-dialog button { width: 100%; min-height: 48px; border: 0; border-radius: 11px; background: #078e8d; color: #fff; font-weight: 800; cursor: pointer; }
+.post-location-dialog__actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 10px; }
+.post-location-dialog button { min-height: 48px; border: 0; border-radius: 11px; background: #078e8d; color: #fff; font-weight: 800; cursor: pointer; }
+.post-location-dialog button:disabled { opacity: .6; cursor: wait; }
+.post-location-dialog .post-location-dialog__cancel { background: #edf2f6; color: #4e647d; }
 
 @media (max-width: 1100px) {
   .post-page__body { width: min(920px, calc(100% - 32px)); grid-template-columns: 1fr 250px; gap: 16px; }
@@ -110,7 +114,7 @@
   .post-page__intro p { font-size: 12px; }
   .post-step { padding: 17px; }
   .post-categories, .post-description, .post-feature-field, .post-help-types, .post-location-field { margin-left: 0; width: 100%; }
-  .post-location-note { margin-left: 0; }
+  .post-location-note, .post-location-error { margin-left: 0; }
   .post-page__footer { position: sticky; bottom: 0; grid-template-columns: 112px 1fr; gap: 10px; margin: 12px 0 0; padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: #fff; }
 }
 
@@ -120,6 +124,5 @@
   .post-categories { grid-template-columns: repeat(2, 1fr); }
   .post-help-types { grid-template-columns: 1fr; }
   .post-location-field { font-size: 13px; }
-  .post-location-refresh { display: none; }
   .post-cancel, .post-submit { min-height: 49px; font-size: 15px; }
 }
