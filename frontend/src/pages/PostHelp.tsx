@@ -64,8 +64,8 @@ export default function PostHelp() {
     setError('')
 
     try {
-      await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
-      navigate('/post/complete', { replace: true })
+      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
+      navigate('/post/complete', { replace: true, state: { postId } })
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
       setError('投稿できませんでした。時間をおいてもう一度お試しください。')

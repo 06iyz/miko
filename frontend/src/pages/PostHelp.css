@@ -81,6 +81,7 @@
 .post-complete .post-progress { margin: 0 auto 35px; justify-content: center; }
 .post-complete__check { width: 72px; height: 72px; display: grid; place-items: center; margin: 0 auto 17px; border-radius: 50%; background: linear-gradient(135deg, #0a9c91, #3dbb9d); color: #fff; font-size: 42px; font-weight: 900; box-shadow: 0 10px 22px rgba(6, 143, 137, .24); }
 .post-complete__eyebrow { margin: 0; color: #078e8d; font-weight: 800; }
+.post-complete__id { margin: 12px auto 0 !important; width: fit-content; padding: 5px 10px; border-radius: 999px; background: #eef3f7; color: #627a91 !important; font-size: 12px; font-weight: 800; }
 .post-complete h1 { margin: 5px 0 12px; font-size: 28px; }
 .post-complete > p:not(.post-complete__eyebrow) { color: #617891; line-height: 1.8; }
 .post-complete__notice { margin: 25px 0; padding: 16px; display: grid; gap: 5px; border-radius: 12px; background: #f0f9f8; color: #46637d; text-align: left; font-size: 14px; }

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import { SendIcon } from '../components/icons'
 import './PostHelp.css'
@@ -6,6 +6,8 @@ import './PostHelp.css'
 /** Firestore への保存が成功したあとにだけ表示する投稿完了画面。 */
 export default function PostComplete() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const postId = (location.state as { postId?: string } | null)?.postId
 
   return (
     <div className="post-page post-complete-page">
@@ -21,15 +23,16 @@ export default function PostComplete() {
         <div className="post-complete__check" aria-hidden="true">✓</div>
         <p className="post-complete__eyebrow">投稿が完了しました</p>
         <h1>Helpを投稿しました！</h1>
-        <p>地域のみんなに投稿が届きました。<br />助けてくれる人から連絡が来るまで、少しお待ちください。</p>
+        <p>投稿を受け付けました。地域のみんなに届いています。<br />助けてくれる人から連絡が来るまで、少しお待ちください。</p>
+        {postId && <p className="post-complete__id">受付番号：{postId.slice(0, 8).toUpperCase()}</p>}
         <div className="post-complete__notice">
-          <strong>次にできること</strong>
-          <span>メッセージに返信すると、助けてくれる人とやり取りできます。</span>
+          <strong>安心してお待ちください</strong>
+          <span>投稿内容はマイページの「投稿履歴」からいつでも確認できます。位置情報は約100m単位に丸めて保存されています。</span>
         </div>
         <div className="post-complete__actions">
           <button type="button" className="post-cancel" onClick={() => navigate('/home')}>ホームへ戻る</button>
-          <button type="button" className="post-submit" onClick={() => navigate('/messages')}>
-            <SendIcon width={19} height={19} /> メッセージを見る
+          <button type="button" className="post-submit" onClick={() => navigate('/mypage')}>
+            <SendIcon width={19} height={19} /> 投稿履歴を見る
           </button>
         </div>
       </main>
