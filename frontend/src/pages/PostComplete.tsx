@@ -16,9 +16,9 @@ export default function PostComplete() {
       </div>
       <main className="post-complete">
         <ol className="post-progress" aria-label="投稿の進行状況">
-          <li className="is-done"><span>1</span><small>内容の入力</small></li>
-          <li className="is-done"><span>2</span><small>確認</small></li>
-          <li className="is-current"><span>3</span><small>投稿完了</small></li>
+          <li><span>1</span><small>内容の入力</small></li>
+          <li><span>2</span><small>確認</small></li>
+          <li className="is-current" aria-current="step"><span>3</span><small>投稿完了</small></li>
         </ol>
         <div className="post-complete__check" aria-hidden="true">✓</div>
         <p className="post-complete__eyebrow">投稿が完了しました</p>
