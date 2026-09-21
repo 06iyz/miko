@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import Home from './pages/Home'
 import MapView from './pages/MapView'
 import PostHelp from './pages/PostHelp'
+import PostComplete from './pages/PostComplete'
 import HelpDetail from './pages/HelpDetail'
 import Messages from './pages/Messages'
 import Chat from './pages/Chat'
@@ -40,6 +41,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/map" element={<MapView />} />
           <Route path="/post/new" element={<PostHelp />} />
+          <Route path="/post/complete" element={<PostComplete />} />
           <Route path="/help/:id" element={<HelpDetail />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/help/:id/chat" element={<Chat />} />

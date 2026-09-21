@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { collection, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { mockUser } from '../data/mockHelps'
 import { useAuth } from '../contexts/AuthContext'
+import { db } from '../lib/firebase'
 import BottomNav from '../components/BottomNav'
 import {
   BellIcon,
@@ -13,7 +15,6 @@ import {
 } from '../components/icons'
 
 const menuItems = [
-  { label: '自分の投稿', Icon: ListIcon },
   { label: '助けた履歴', Icon: ClockIcon },
   { label: 'お気に入り', Icon: HeartIcon },
   { label: 'お知らせ', Icon: BellIcon },
@@ -21,9 +22,58 @@ const menuItems = [
   { label: 'ヘルプ', Icon: QuestionIcon },
 ]
 
+type HistoryPost = {
+  id: string
+  title: string
+  category: string
+  type: 'come' | 'teach'
+  location: string
+  status: 'open' | 'closed'
+  createdAt: Timestamp | null
+}
+
+function formatPostedAt(createdAt: Timestamp | null) {
+  if (!createdAt) return 'たった今'
+  return new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(createdAt.toDate())
+}
+
 export default function MyPage() {
   const { user, loading } = useAuth()
   const [failedPhotoURL, setFailedPhotoURL] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'history' | 'account'>('history')
+  const [history, setHistory] = useState<HistoryPost[]>([])
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true)
+  const [historyError, setHistoryError] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+
+    const historyQuery = query(
+      collection(db, 'helpPosts'),
+      where('authorUid', '==', user.uid),
+      orderBy('createdAt', 'desc'),
+    )
+
+    return onSnapshot(historyQuery, (snapshot) => {
+      setHistory(snapshot.docs.map((document) => {
+        const data = document.data()
+        return {
+          id: document.id,
+          title: typeof data.title === 'string' ? data.title : '投稿内容',
+          category: typeof data.category === 'string' ? data.category : 'その他',
+          type: data.type === 'teach' ? 'teach' : 'come',
+          location: typeof data.location === 'string' ? data.location : '場所未設定',
+          status: data.status === 'closed' ? 'closed' : 'open',
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
+        }
+      }))
+      setIsHistoryLoading(false)
+      setHistoryError('')
+    }, () => {
+      setHistoryError('投稿履歴を読み込めませんでした。時間をおいてもう一度お試しください。')
+      setIsHistoryLoading(false)
+    })
+  }, [user])
 
   if (loading) return <p>読み込み中...</p>
   if (!user) return <p>ログインしてください</p>
@@ -76,15 +126,43 @@ export default function MyPage() {
           </div>
         </div>
 
-        <div className="menu-list">
-          {menuItems.map(({ label, Icon }) => (
-            <button key={label} type="button" className="menu-list__item">
-              <Icon />
-              <span>{label}</span>
-              <ChevronRightIcon className="menu-list__chevron" />
-            </button>
-          ))}
+        <div className="mypage-tabs" role="tablist" aria-label="マイページの表示内容">
+          <button type="button" role="tab" aria-selected={activeTab === 'history'} className={activeTab === 'history' ? 'is-active' : ''} onClick={() => setActiveTab('history')}>投稿履歴</button>
+          <button type="button" role="tab" aria-selected={activeTab === 'account'} className={activeTab === 'account' ? 'is-active' : ''} onClick={() => setActiveTab('account')}>アカウント</button>
         </div>
+
+        {activeTab === 'history' ? (
+          <section className="post-history" aria-label="投稿履歴">
+            <div className="post-history__heading">
+              <div><h2>あなたの投稿</h2><p>投稿後もここから内容を確認できます。</p></div>
+              <span>{history.length}件</span>
+            </div>
+            {isHistoryLoading ? <p className="post-history__state">投稿履歴を読み込み中です...</p> : historyError ? <p className="post-history__state post-history__state--error">{historyError}</p> : history.length === 0 ? (
+              <div className="post-history__empty"><ListIcon /><p>まだ投稿はありません</p><span>困ったときは、ここからいつでも投稿できます。</span></div>
+            ) : (
+              <div className="post-history__list">
+                {history.map((post) => (
+                  <article key={post.id} className="post-history__item">
+                    <div className="post-history__item-top"><span className="post-history__category">{post.category}</span><span className={`post-history__status post-history__status--${post.status}`}>{post.status === 'open' ? '募集中' : '解決済み'}</span></div>
+                    <h3>{post.title}</h3>
+                    <p className="post-history__meta">{post.type === 'come' ? '来てほしい' : '教えてほしい'} ・ {post.location}</p>
+                    <time>{formatPostedAt(post.createdAt)}</time>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <div className="menu-list">
+            {menuItems.map(({ label, Icon }) => (
+              <button key={label} type="button" className="menu-list__item">
+                <Icon />
+                <span>{label}</span>
+                <ChevronRightIcon className="menu-list__chevron" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />
