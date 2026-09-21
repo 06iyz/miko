@@ -22,6 +22,8 @@
 .post-progress span { position: relative; z-index: 1; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: #e8edf3; }
 .post-progress .is-current { color: #078e8d; }
 .post-progress .is-current span { background: #078e8d; color: #fff; }
+.post-progress .is-done { color: #3a8c78; }
+.post-progress .is-done span { background: #dff4ec; color: #19795f; }
 
 .post-step { margin-top: 12px; padding: 18px 26px; border: 1px solid #e4edf2; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(53, 86, 110, .04); }
 .post-step__heading { display: flex; align-items: flex-start; gap: 14px; }
@@ -61,6 +63,29 @@
 .post-location-refresh { margin-left: auto; min-height: 38px; padding: 0 13px; border: 1px solid #cbd9e4; border-radius: 10px; background: #fff; color: #315371; font-weight: 700; cursor: pointer; }
 .post-location-note { margin: 7px 0 0 52px; color: #7388a0; font-size: 12px; }
 .post-location-error { margin: 7px 0 0 52px; color: #b42318 !important; font-size: 12px !important; font-weight: 700; }
+
+.post-confirmation { margin-top: 12px; padding: 28px; border: 1px solid #dce9ed; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(53, 86, 110, .04); }
+.post-confirmation__heading { display: flex; gap: 14px; align-items: flex-start; }
+.post-confirmation__heading h2 { margin: 3px 0; font-size: 21px; }
+.post-confirmation__heading p { color: #687d97; font-size: 14px; }
+.post-confirmation__details { margin: 24px 0 0 52px; border: 1px solid #dce6ed; border-radius: 12px; overflow: hidden; }
+.post-confirmation__details > div { display: grid; grid-template-columns: 158px 1fr; border-bottom: 1px solid #e6edf2; }
+.post-confirmation__details > div:last-child { border-bottom: 0; }
+.post-confirmation__details dt { padding: 14px 16px; background: #f3f8fa; color: #47627e; font-size: 14px; font-weight: 800; }
+.post-confirmation__details dd { margin: 0; padding: 14px 16px; color: #19334f; line-height: 1.6; white-space: pre-wrap; }
+.post-confirmation__description { min-height: 84px; }
+.post-confirmation__privacy { margin: 13px 0 0 52px; padding: 11px 13px; border-radius: 10px; background: #edf8f5; color: #397866; font-size: 13px; }
+
+.post-complete-page { min-height: 100%; display: grid; place-items: center; }
+.post-complete { width: min(610px, calc(100% - 32px)); margin: 32px auto; padding: 42px; border-radius: 22px; background: #fff; box-shadow: 0 14px 38px rgba(37, 72, 96, .10); text-align: center; }
+.post-complete .post-progress { margin: 0 auto 35px; justify-content: center; }
+.post-complete__check { width: 72px; height: 72px; display: grid; place-items: center; margin: 0 auto 17px; border-radius: 50%; background: linear-gradient(135deg, #0a9c91, #3dbb9d); color: #fff; font-size: 42px; font-weight: 900; box-shadow: 0 10px 22px rgba(6, 143, 137, .24); }
+.post-complete__eyebrow { margin: 0; color: #078e8d; font-weight: 800; }
+.post-complete h1 { margin: 5px 0 12px; font-size: 28px; }
+.post-complete > p:not(.post-complete__eyebrow) { color: #617891; line-height: 1.8; }
+.post-complete__notice { margin: 25px 0; padding: 16px; display: grid; gap: 5px; border-radius: 12px; background: #f0f9f8; color: #46637d; text-align: left; font-size: 14px; }
+.post-complete__notice strong { color: #087f7c; }
+.post-complete__actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
 
 .post-page__aside { display: grid; align-content: start; gap: 16px; }
 .post-aside-card { padding: 20px; border-radius: 15px; background: #fff; box-shadow: 0 7px 22px rgba(53, 86, 110, .05); }
@@ -114,6 +139,8 @@
   .post-page__intro p { font-size: 12px; }
   .post-step { padding: 17px; }
   .post-categories, .post-description, .post-feature-field, .post-help-types, .post-location-field { margin-left: 0; width: 100%; }
+  .post-confirmation__details { margin-left: 0; }
+  .post-confirmation__privacy { margin-left: 0; }
   .post-location-note, .post-location-error { margin-left: 0; }
   .post-page__footer { position: sticky; bottom: 0; grid-template-columns: 112px 1fr; gap: 10px; margin: 12px 0 0; padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: #fff; }
 }
@@ -125,4 +152,11 @@
   .post-help-types { grid-template-columns: 1fr; }
   .post-location-field { font-size: 13px; }
   .post-cancel, .post-submit { min-height: 49px; font-size: 15px; }
+  .post-confirmation { padding: 19px 16px; }
+  .post-confirmation__details > div { grid-template-columns: 1fr; }
+  .post-confirmation__details dt { padding: 9px 12px; }
+  .post-confirmation__details dd { padding: 10px 12px; }
+  .post-complete { width: calc(100% - 28px); margin: 18px auto; padding: 28px 18px; }
+  .post-complete .post-progress { display: flex; transform: scale(.82); margin-bottom: 20px; }
+  .post-complete__actions { grid-template-columns: 1fr; }
 }
