@@ -128,6 +128,13 @@
   .post-categories { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* サイドバーが見えるタブレット幅では、投稿用の右カラムを隠して入力欄を広く保つ。 */
+@media (min-width: 881px) and (max-width: 1040px) {
+  .post-page__body { width: min(760px, calc(100% - 32px)); display: block; }
+  .post-page__aside { display: none; }
+  .post-page__footer { grid-column: auto; }
+}
+
 @media (max-width: 880px) {
   .post-page__desktop-header { display: none; }
   .post-page__mobile-topbar { display: block; }
@@ -160,4 +167,19 @@
   .post-complete { width: calc(100% - 28px); margin: 18px auto; padding: 28px 18px; }
   .post-complete .post-progress { display: flex; transform: scale(.82); margin-bottom: 20px; }
   .post-complete__actions { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 390px) {
+  .post-page__main { padding-right: 14px; padding-left: 14px; }
+  .post-page__intro { align-items: flex-start; gap: 11px; }
+  .post-page__intro-icon { width: 40px; height: 40px; font-size: 23px; }
+  .post-page__intro h1 { font-size: 20px; }
+  .post-step { padding: 15px 13px; }
+  .post-location-field { flex-wrap: wrap; padding: 10px 12px; }
+  .post-location-field input { min-width: calc(100% - 34px); }
+  .post-location-refresh { width: 100%; margin-left: 0; }
+  .post-location-dialog { padding: 23px 18px; }
+  .post-location-dialog__actions { grid-template-columns: 1fr; }
+  .post-page__footer { grid-template-columns: 1fr; }
+  .post-cancel { display: none; }
 }
