@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import type { HelpCategory, HelpType } from '../types'
@@ -23,18 +23,22 @@ const examples = [
 ]
 
 const MAX_LENGTH = 200
-const location = '神戸市中央区三宮町１丁目'
+const LOCATION_PLACEHOLDER = '例）大阪市北区梅田１丁目・駅前の自動販売機の近く'
 
 export default function PostHelp() {
   const navigate = useNavigate()
   const [category, setCategory] = useState<HelpCategory>('移動')
   const [description, setDescription] = useState('')
   const [type, setType] = useState<HelpType>('come')
+  const [location, setLocation] = useState('')
+  const [requesterFeature, setRequesterFeature] = useState('')
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { user } = useAuth()
+  const locationInputRef = useRef<HTMLInputElement>(null)
 
-  const canSubmit = description.trim().length > 0
+  const canSubmit = description.trim().length > 0 && location.trim().length > 0
   const displayName = user?.displayName || 'ゲスト'
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,7 +49,7 @@ export default function PostHelp() {
     setError('')
 
     try {
-      await createHelpPost(user, { category, description, type, location })
+      await createHelpPost(user, { category, description, type, location, requesterFeature })
       navigate('/home')
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
@@ -53,6 +57,11 @@ export default function PostHelp() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const closeLocationDialog = () => {
+    setIsLocationDialogOpen(false)
+    window.setTimeout(() => locationInputRef.current?.focus(), 0)
   }
 
   return (
@@ -120,6 +129,16 @@ export default function PostHelp() {
               onChange={(event) => setDescription(event.target.value)}
             />
             <p className="post-description__count">{description.length} / {MAX_LENGTH}</p>
+            <label className="post-feature-field">
+              <span>あなたの特徴 <em>任意</em></span>
+              <input
+                maxLength={120}
+                value={requesterFeature}
+                onChange={(event) => setRequesterFeature(event.target.value)}
+                placeholder="例）黒いベビーカー、青いリュックを持っています"
+              />
+              <small>待ち合わせの目印になる情報だけを書いてください。個人情報は書かないでください。</small>
+            </label>
           </section>
 
           <section className="post-step">
@@ -163,9 +182,16 @@ export default function PostHelp() {
             </div>
             <div className="post-location-field">
               <LocationIcon width={22} height={22} />
-              <span>{location}</span>
-              <button type="button" className="post-location-refresh">◎ 現在地を更新</button>
+              <input
+                ref={locationInputRef}
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+                placeholder={LOCATION_PLACEHOLDER}
+                aria-label="場所と目印"
+              />
+              <button type="button" className="post-location-refresh" onClick={() => setIsLocationDialogOpen(true)}>◎ 現在地について</button>
             </div>
+            <p className="post-location-note">住所・施設名・目印など、助けに来る人が分かる範囲で入力してください。</p>
           </section>
         </main>
 
@@ -206,6 +232,22 @@ export default function PostHelp() {
           </button>
         </footer>
       </form>
+
+      {isLocationDialogOpen && (
+        <div className="post-location-dialog-backdrop" role="presentation" onMouseDown={() => setIsLocationDialogOpen(false)}>
+          <section className="post-location-dialog" role="dialog" aria-modal="true" aria-labelledby="location-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="post-location-dialog__icon" aria-hidden="true"><LocationIcon width={28} height={28} /></div>
+            <h2 id="location-dialog-title">現在地の共有について</h2>
+            <p>正確な位置情報を自動で公開することはありません。投稿には、あなたが入力した住所・施設名・目印だけが表示されます。</p>
+            <ul>
+              <li>「大阪市北区梅田１丁目」のように大まかな場所を書く</li>
+              <li>「駅前の自動販売機の近く」などの目印を書く</li>
+              <li>部屋番号・電話番号などの個人情報は書かない</li>
+            </ul>
+            <button type="button" onClick={closeLocationDialog}>場所を入力する</button>
+          </section>
+        </div>
+      )}
     </div>
   )
 }

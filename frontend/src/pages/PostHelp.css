@@ -38,6 +38,11 @@
 .post-description:focus { border-color: #079b94; box-shadow: 0 0 0 3px rgba(7, 155, 148, .11); }
 .post-description::placeholder { color: #95a5bb; }
 .post-description__count { margin: 4px 0 0; padding-right: 2px; text-align: right; }
+.post-feature-field { width: calc(100% - 52px); margin: 14px 0 0 52px; display: grid; gap: 6px; color: #304c68; font-size: 14px; font-weight: 800; }
+.post-feature-field em { margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: #edf2f6; color: #71859a; font-size: 11px; font-style: normal; font-weight: 700; }
+.post-feature-field input { min-height: 46px; padding: 0 13px; border: 1px solid #cad8e4; border-radius: 10px; outline: 0; }
+.post-feature-field input:focus { border-color: #079b94; box-shadow: 0 0 0 3px rgba(7, 155, 148, .11); }
+.post-feature-field small { color: #7b8fa3; font-size: 12px; font-weight: 500; }
 
 .post-help-types { margin: 18px 0 0 52px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .post-help-type { min-height: 90px; padding: 13px 18px; display: flex; align-items: center; gap: 13px; border: 1px solid #d4e0e9; border-radius: 12px; background: #fff; text-align: left; cursor: pointer; }
@@ -51,7 +56,10 @@
 
 .post-location-field { margin: 16px 0 0 52px; min-height: 51px; display: flex; align-items: center; gap: 11px; padding: 0 14px; border: 1px solid #d0dde7; border-radius: 11px; color: #254260; font-weight: 700; }
 .post-location-field svg { color: #234c72; }
+.post-location-field input { min-width: 0; flex: 1; border: 0; outline: 0; color: #254260; font-weight: 700; background: transparent; }
+.post-location-field input::placeholder { color: #8ca0b4; font-weight: 500; }
 .post-location-refresh { margin-left: auto; min-height: 38px; padding: 0 13px; border: 1px solid #cbd9e4; border-radius: 10px; background: #fff; color: #315371; font-weight: 700; cursor: pointer; }
+.post-location-note { margin: 7px 0 0 52px; color: #7388a0; font-size: 12px; }
 
 .post-page__aside { display: grid; align-content: start; gap: 16px; }
 .post-aside-card { padding: 20px; border-radius: 15px; background: #fff; box-shadow: 0 7px 22px rgba(53, 86, 110, .05); }
@@ -75,6 +83,14 @@
 .post-submit:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .post-page__error { grid-column: 1 / -1; margin: 0; color: #b42318; font-size: 14px; font-weight: 700; }
 
+.post-location-dialog-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(16, 35, 54, .42); }
+.post-location-dialog { width: min(460px, 100%); padding: 28px; border-radius: 20px; background: #fff; box-shadow: 0 24px 60px rgba(18, 43, 65, .25); }
+.post-location-dialog__icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #e5f6f3; color: #078e8d; }
+.post-location-dialog h2 { margin: 16px 0 8px; font-size: 21px; }
+.post-location-dialog p { color: #5e748d; line-height: 1.7; }
+.post-location-dialog ul { margin: 16px 0 22px; padding-left: 22px; color: #4d657e; line-height: 1.85; font-size: 14px; }
+.post-location-dialog button { width: 100%; min-height: 48px; border: 0; border-radius: 11px; background: #078e8d; color: #fff; font-weight: 800; cursor: pointer; }
+
 @media (max-width: 1100px) {
   .post-page__body { width: min(920px, calc(100% - 32px)); grid-template-columns: 1fr 250px; gap: 16px; }
   .post-page__desktop-header { padding-right: 24px; }
@@ -93,7 +109,8 @@
   .post-page__intro h1 { font-size: 22px; }
   .post-page__intro p { font-size: 12px; }
   .post-step { padding: 17px; }
-  .post-categories, .post-description, .post-help-types, .post-location-field { margin-left: 0; width: 100%; }
+  .post-categories, .post-description, .post-feature-field, .post-help-types, .post-location-field { margin-left: 0; width: 100%; }
+  .post-location-note { margin-left: 0; }
   .post-page__footer { position: sticky; bottom: 0; grid-template-columns: 112px 1fr; gap: 10px; margin: 12px 0 0; padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: #fff; }
 }
 

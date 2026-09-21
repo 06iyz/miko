@@ -8,6 +8,7 @@ type CreateHelpPostInput = {
   description: string
   type: HelpType
   location: string
+  requesterFeature?: string
 }
 
 function createTitle(description: string) {
@@ -29,6 +30,7 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     category: input.category,
     type: input.type,
     location: input.location,
+    requesterFeature: input.requesterFeature?.trim() || null,
     status: 'open',
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
