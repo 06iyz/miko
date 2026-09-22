@@ -15,5 +15,21 @@ service cloud.firestore {
       allow update, delete: if request.auth != null
         && resource.data.authorUid == request.auth.uid;
     }
+
+    match /userProfiles/{userId} {
+      // マイページの回数・評価は本人だけが読める。
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // 初回はすべて 0 から始める。
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.helpedCount == 0
+        && request.resource.data.helpedByCount == 0
+        && request.resource.data.ratingSum == 0
+        && request.resource.data.ratingCount == 0;
+
+      // 回数の更新は、ログイン中の本人に限る。
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }

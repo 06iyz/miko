@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
+import { ensureUserProfile } from '../lib/userProfile'
 
 type AuthContextValue = {
   user: User | null
@@ -20,7 +21,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          await ensureUserProfile(currentUser)
+        } catch (error) {
+          console.error('Failed to prepare user profile', error)
+        }
+      }
+
       setUser(currentUser)
       setLoading(false)
     })

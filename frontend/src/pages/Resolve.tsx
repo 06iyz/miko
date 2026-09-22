@@ -2,15 +2,30 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { mockConversations, mockHelps } from '../data/mockHelps'
 import { StarIcon } from '../components/icons'
+import { useAuth } from '../contexts/AuthContext'
+import { recordHelped } from '../lib/userProfile'
 
 export default function Resolve() {
   const { id } = useParams()
   const navigate = useNavigate()
   const help = mockHelps.find((h) => h.id === id) ?? mockHelps[0]
   const conversation = mockConversations.find((c) => c.helpId === id) ?? mockConversations[0]
+  const { user } = useAuth()
 
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
+  const [isSending, setIsSending] = useState(false)
+
+  const sendResolution = async () => {
+    if (isSending) return
+    setIsSending(true)
+    try {
+      if (user) await recordHelped(user.uid, help.id)
+      navigate('/home')
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   return (
     <div className="screen screen--narrow resolve-screen">
@@ -54,8 +69,8 @@ export default function Resolve() {
       </div>
 
       <div className="screen__footer screen__footer--stacked">
-        <button type="button" className="btn btn--primary btn--block" onClick={() => navigate('/home')}>
-          送信する
+        <button type="button" className="btn btn--primary btn--block" onClick={() => void sendResolution()} disabled={isSending}>
+          {isSending ? '送信中...' : '送信する'}
         </button>
         <button type="button" className="btn btn--text" onClick={() => navigate('/home')}>
           あとで

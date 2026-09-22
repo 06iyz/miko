@@ -1361,6 +1361,24 @@ p {
   font-size: 12px;
 }
 
+.post-history__close {
+  min-height: 34px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.post-history__close:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
 .post-history__state,
 .post-history__empty {
   padding: 24px 16px;

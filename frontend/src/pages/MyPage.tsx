@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
-import { mockUser } from '../data/mockHelps'
+import { collection, doc, onSnapshot, query, Timestamp, where } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
+import { closePostAndRecordHelpedBy, emptyUserStats, readUserStats, type UserStats } from '../lib/userProfile'
 import BottomNav from '../components/BottomNav'
 import {
   BellIcon,
@@ -44,6 +44,8 @@ export default function MyPage() {
   const [history, setHistory] = useState<HistoryPost[]>([])
   const [isHistoryLoading, setIsHistoryLoading] = useState(true)
   const [historyError, setHistoryError] = useState('')
+  const [stats, setStats] = useState<UserStats>(emptyUserStats)
+  const [closingPostId, setClosingPostId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -51,11 +53,10 @@ export default function MyPage() {
     const historyQuery = query(
       collection(db, 'helpPosts'),
       where('authorUid', '==', user.uid),
-      orderBy('createdAt', 'desc'),
     )
 
     return onSnapshot(historyQuery, (snapshot) => {
-      setHistory(snapshot.docs.map((document) => {
+      const nextHistory: HistoryPost[] = snapshot.docs.map((document): HistoryPost => {
         const data = document.data()
         return {
           id: document.id,
@@ -66,7 +67,9 @@ export default function MyPage() {
           status: data.status === 'closed' ? 'closed' : 'open',
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
         }
-      }))
+      })
+      nextHistory.sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0))
+      setHistory(nextHistory)
       setIsHistoryLoading(false)
       setHistoryError('')
     }, () => {
@@ -75,10 +78,38 @@ export default function MyPage() {
     })
   }, [user])
 
+  useEffect(() => {
+    if (!user) {
+      setStats(emptyUserStats)
+      return
+    }
+
+    return onSnapshot(doc(db, 'userProfiles', user.uid), (snapshot) => {
+      setStats(readUserStats(snapshot.data()))
+    }, () => {
+      setStats(emptyUserStats)
+    })
+  }, [user])
+
+  const closePost = async (postId: string) => {
+    if (!user || closingPostId) return
+
+    setClosingPostId(postId)
+    setHistoryError('')
+    try {
+      await closePostAndRecordHelpedBy(user.uid, postId)
+    } catch {
+      setHistoryError('投稿を解決済みにできませんでした。時間をおいてもう一度お試しください。')
+    } finally {
+      setClosingPostId(null)
+    }
+  }
+
   if (loading) return <p>読み込み中...</p>
   if (!user) return <p>ログインしてください</p>
 
   const displayName = user.displayName || '名前未設定'
+  const ratingLabel = stats.ratingCount > 0 ? (stats.ratingSum / stats.ratingCount).toFixed(1) : '—'
 
   return (
     <div className="screen screen--narrow">
@@ -110,17 +141,17 @@ export default function MyPage() {
               <p className="profile-card__email">{user.email || 'メールアドレス未設定'}</p>
             </div>
           </div>
-          <div className="profile-card__stats">
+            <div className="profile-card__stats">
             <div>
-              <p className="profile-card__value">{mockUser.helpedCount}</p>
+              <p className="profile-card__value">{stats.helpedCount}</p>
               <p className="profile-card__label">助けた</p>
             </div>
             <div>
-              <p className="profile-card__value">{mockUser.helpedByCount}</p>
+              <p className="profile-card__value">{stats.helpedByCount}</p>
               <p className="profile-card__label">助けられた</p>
             </div>
             <div>
-              <p className="profile-card__value">{mockUser.rating.toFixed(1)}</p>
+              <p className="profile-card__value">{ratingLabel}</p>
               <p className="profile-card__label">評価</p>
             </div>
           </div>
@@ -147,6 +178,7 @@ export default function MyPage() {
                     <h3>{post.title}</h3>
                     <p className="post-history__meta">{post.type === 'come' ? '来てほしい' : '教えてほしい'} ・ {post.location}</p>
                     <time>{formatPostedAt(post.createdAt)}</time>
+                    {post.status === 'open' && <button type="button" className="post-history__close" onClick={() => void closePost(post.id)} disabled={closingPostId === post.id}>{closingPostId === post.id ? '変更中...' : '解決済みにする'}</button>}
                   </article>
                 ))}
               </div>
