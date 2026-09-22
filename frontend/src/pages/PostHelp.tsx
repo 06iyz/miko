@@ -288,15 +288,15 @@ export default function PostHelp() {
                 </div>
               </div>
               <div className={`post-photo-capture${hasRequiredPhotos ? ' has-photo' : ''}`}>
-                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="カメラのプレビュー" /> : hasRequiredPhotos ? <div className="post-photo-capture__pair"><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="外カメラで撮影した状況写真" /><figcaption>状況の写真</figcaption></figure><figure className="post-photo-capture__inside"><img src={insidePhotoPreview ?? ''} alt="内カメラで撮影した本人写真" /><figcaption>本人確認用</figcaption></figure></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '内カメラに切り替えています…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '準備でき次第、自動で撮影します' : 'ギャラリーからは選べません'}</small></div>}
-                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● 外カメラで撮影</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">内カメラを自動撮影しています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) { resetPhotos(); void openCamera('environment') } else { void openCamera('environment') } }}>{hasRequiredPhotos ? '最初から撮り直す' : '外カメラを起動'}</button>}
+                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasRequiredPhotos ? <div className="post-photo-capture__pair"><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><figure className="post-photo-capture__inside"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><figcaption>あなたの写真</figcaption></figure></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
+                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) { resetPhotos(); void openCamera('environment') } else { void openCamera('environment') } }}>{hasRequiredPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
               </div>
               <div className="post-photo-actions">
-                {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>外カメラ → 1.5秒後に内カメラで自動撮影します</span>}
+                {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>まわりを撮ったあと、自分の写真を自動で撮ります</span>}
                 {(outsidePhotoPreview || insidePhotoPreview) && <button type="button" onClick={resetPhotos}>写真を削除</button>}
               </div>
               {cameraError && <p className="post-photo-error" role="alert">{cameraError}</p>}
-              <p className="post-photo-note">最初に外カメラで状況を撮影し、1.5秒後に内カメラへ切り替えて自動撮影します。ギャラリーからは選べません。顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
+              <p className="post-photo-note">最初にまわりの様子を撮り、1.5秒後に自分の写真を撮ります。スマホに保存済みの写真は選べません。顔・家番号・車のナンバー・他の人が写らないようにしてください。写真は、この画面で内容を確認するためだけに使われ、投稿後には残りません。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">
@@ -304,11 +304,11 @@ export default function PostHelp() {
               <span className="post-step__number">1</span>
               <div>
                 <h2>どんなことで困っていますか？</h2>
-                <p>あてはまるカテゴリーを選んで、詳しい内容を教えてください。</p>
+                <p>当てはまる種類を選んで、詳しい内容を教えてください。</p>
               </div>
             </div>
 
-            <div className="post-categories" role="group" aria-label="カテゴリー">
+            <div className="post-categories" role="group" aria-label="困りごとの種類">
               {categories.map(({ value, icon }) => (
                 <button
                   key={value}
@@ -408,8 +408,8 @@ export default function PostHelp() {
                 </div>
               </div>
               <dl className="post-confirmation__details">
-                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className="post-confirmation__photo-pair"><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="外カメラで撮影した状況写真" /><figcaption>状況の写真</figcaption></figure><figure className="post-confirmation__inside"><img src={insidePhotoPreview ?? ''} alt="内カメラで撮影した本人写真" /><figcaption>本人確認用</figcaption></figure></div></dd></div>}
-                <div><dt>カテゴリー</dt><dd>{category}</dd></div>
+                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className="post-confirmation__photo-pair"><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><figure className="post-confirmation__inside"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><figcaption>あなたの写真</figcaption></figure></div></dd></div>}
+                <div><dt>困りごとの種類</dt><dd>{category}</dd></div>
                 <div><dt>お願いしたいこと</dt><dd>{type === 'come' ? '来てほしい（現地でのサポート）' : '教えてほしい（チャットでの回答）'}</dd></div>
                 <div><dt>困っていること</dt><dd className="post-confirmation__description">{description}</dd></div>
                 <div><dt>場所・目印</dt><dd>{location}</dd></div>
