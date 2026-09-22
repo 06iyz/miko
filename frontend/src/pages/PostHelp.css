@@ -71,6 +71,10 @@
 .post-photo-capture.has-photo { background: #172d38; }
 .post-photo-capture > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
 .post-photo-capture__video { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+.post-photo-capture__pair { width: 100%; height: 100%; position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #172d38; }
+.post-photo-capture__pair figure { min-width: 0; margin: 0; position: relative; }
+.post-photo-capture__pair img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.post-photo-capture__pair figcaption { position: absolute; right: 8px; bottom: 8px; padding: 3px 7px; border-radius: 999px; background: rgba(10, 30, 37, .72); color: #fff; font-size: 11px; font-weight: 800; }
 .post-photo-capture__placeholder { display: grid; justify-items: center; gap: 8px; padding: 24px; text-align: center; }
 .post-photo-capture__placeholder span { width: 58px; height: 58px; display: grid; place-items: center; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; font-size: 29px; }
 .post-photo-capture__placeholder strong { font-size: 17px; }
@@ -94,6 +98,10 @@
 .post-confirmation__description { min-height: 84px; }
 .post-confirmation__photo dd { padding: 12px; }
 .post-confirmation__photo img { display: block; width: min(320px, 100%); max-height: 240px; border-radius: 9px; object-fit: cover; }
+.post-confirmation__photo-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.post-confirmation__photo-pair figure { margin: 0; min-width: 0; }
+.post-confirmation__photo-pair img { width: 100%; max-height: 180px; }
+.post-confirmation__photo-pair figcaption { margin-top: 4px; color: #64788e; font-size: 11px; font-weight: 700; }
 .post-confirmation__privacy { margin: 13px 0 0 52px; padding: 11px 13px; border-radius: 10px; background: #edf8f5; color: #397866; font-size: 13px; }
 
 .post-complete-page { min-height: 100%; display: grid; place-items: center; }

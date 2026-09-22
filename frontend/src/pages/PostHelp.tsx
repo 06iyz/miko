@@ -40,9 +40,10 @@ export default function PostHelp() {
     longitude: number
     accuracyMeters: number
   } | null>(null)
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [outsidePhotoPreview, setOutsidePhotoPreview] = useState<string | null>(null)
+  const [insidePhotoPreview, setInsidePhotoPreview] = useState<string | null>(null)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment')
   const [cameraError, setCameraError] = useState('')
   const [step, setStep] = useState<'photo' | 'input' | 'confirm'>('photo')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -51,14 +52,16 @@ export default function PostHelp() {
   const locationInputRef = useRef<HTMLInputElement>(null)
   const cameraVideoRef = useRef<HTMLVideoElement>(null)
   const cameraStreamRef = useRef<MediaStream | null>(null)
+  const photoUrlsRef = useRef<string[]>([])
 
   const canSubmit = description.trim().length > 0 && location.trim().length > 0
-  const isPrimaryDisabled = !user || isSubmitting || (step === 'photo' ? !photoFile : !canSubmit)
+  const hasRequiredPhotos = Boolean(outsidePhotoPreview && insidePhotoPreview)
+  const isPrimaryDisabled = !user || isSubmitting || (step === 'photo' ? !hasRequiredPhotos : !canSubmit)
   const displayName = user?.displayName || 'ゲスト'
 
   useEffect(() => () => {
-    if (photoPreview) URL.revokeObjectURL(photoPreview)
-  }, [photoPreview])
+    photoUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+  }, [])
 
   const stopCamera = () => {
     cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
@@ -76,9 +79,9 @@ export default function PostHelp() {
       video.srcObject = cameraStreamRef.current
       void video.play().catch(() => setCameraError('カメラ映像を開始できませんでした。もう一度お試しください。'))
     }
-  }, [isCameraOpen])
+  }, [isCameraOpen, cameraFacing])
 
-  const openCamera = async () => {
+  const openCamera = async (facing: 'environment' | 'user') => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError('このブラウザではカメラを利用できません。スマホのブラウザでお試しください。')
       return
@@ -86,11 +89,13 @@ export default function PostHelp() {
 
     setCameraError('')
     try {
+      cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: { ideal: 'environment' } },
+        video: { facingMode: { ideal: facing } },
       })
       cameraStreamRef.current = stream
+      setCameraFacing(facing)
       setIsCameraOpen(true)
     } catch {
       setCameraError('カメラを利用できません。ブラウザのカメラ許可を確認してください。')
@@ -114,16 +119,25 @@ export default function PostHelp() {
         return
       }
       const photo = new File([blob], `help-now-${Date.now()}.jpg`, { type: 'image/jpeg' })
-      setPhotoFile(photo)
-      setPhotoPreview(URL.createObjectURL(photo))
+      const preview = URL.createObjectURL(photo)
+      photoUrlsRef.current.push(preview)
+      const wasOutsideCamera = cameraFacing === 'environment'
+      if (wasOutsideCamera) {
+        setOutsidePhotoPreview(preview)
+      } else {
+        setInsidePhotoPreview(preview)
+      }
       setCameraError('')
       stopCamera()
+      if (wasOutsideCamera) {
+        void openCamera('user')
+      }
     }, 'image/jpeg', 0.88)
   }
 
   const advanceFromPhoto = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!photoFile) return
+    if (!hasRequiredPhotos) return
     setError('')
     setStep('input')
   }
@@ -233,16 +247,16 @@ export default function PostHelp() {
                   <p>助けに来る人が状況をイメージしやすくなります。</p>
                 </div>
               </div>
-              <div className={`post-photo-capture${photoPreview ? ' has-photo' : ''}`}>
-                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline aria-label="カメラのプレビュー" /> : photoPreview ? <img src={photoPreview} alt="投稿する状況写真のプレビュー" /> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>現在の状況を写真で伝えましょう</strong><small>ギャラリーからは選べません</small></div>}
-                {isCameraOpen ? <button type="button" className="post-photo-capture__camera" onClick={capturePhoto}>● 撮影する</button> : <button type="button" className="post-photo-capture__camera" onClick={openCamera}>{photoPreview ? '撮り直す' : 'カメラを起動'}</button>}
+              <div className={`post-photo-capture${hasRequiredPhotos ? ' has-photo' : ''}`}>
+                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline aria-label="カメラのプレビュー" /> : hasRequiredPhotos ? <div className="post-photo-capture__pair"><figure><img src={outsidePhotoPreview ?? ''} alt="外カメラで撮影した状況写真" /><figcaption>外カメラ</figcaption></figure><figure><img src={insidePhotoPreview ?? ''} alt="内カメラで撮影した本人写真" /><figcaption>内カメラ</figcaption></figure></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{outsidePhotoPreview ? '次は内カメラで撮影します' : '現在の状況を写真で伝えましょう'}</strong><small>ギャラリーからは選べません</small></div>}
+                {isCameraOpen ? <button type="button" className="post-photo-capture__camera" onClick={capturePhoto}>● {cameraFacing === 'environment' ? '外カメラで撮影' : '内カメラで撮影'}</button> : <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) { setOutsidePhotoPreview(null); setInsidePhotoPreview(null); setCameraFacing('environment'); void openCamera('environment') } else { void openCamera(outsidePhotoPreview ? 'user' : 'environment') } }}>{hasRequiredPhotos ? '最初から撮り直す' : outsidePhotoPreview ? '内カメラを起動' : '外カメラを起動'}</button>}
               </div>
               <div className="post-photo-actions">
-                {isCameraOpen ? <button type="button" onClick={stopCamera}>カメラを閉じる</button> : <span>この場で撮影した写真のみ使えます</span>}
-                {photoPreview && <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}>写真を削除</button>}
+                {isCameraOpen ? <button type="button" onClick={stopCamera}>カメラを閉じる</button> : <span>外カメラ → 内カメラの順に、この場で撮影します</span>}
+                {(outsidePhotoPreview || insidePhotoPreview) && <button type="button" onClick={() => { setOutsidePhotoPreview(null); setInsidePhotoPreview(null); setCameraFacing('environment') }}>写真を削除</button>}
               </div>
               {cameraError && <p className="post-photo-error" role="alert">{cameraError}</p>}
-              <p className="post-photo-note">ギャラリーからは選べず、この場で撮影した写真だけを使えます。顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
+              <p className="post-photo-note">最初に外カメラ、次に内カメラで撮影します。ギャラリーからは選べません。顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">
@@ -354,7 +368,7 @@ export default function PostHelp() {
                 </div>
               </div>
               <dl className="post-confirmation__details">
-                {photoPreview && <div className="post-confirmation__photo"><dt>状況写真</dt><dd><img src={photoPreview} alt="投稿する状況写真" /></dd></div>}
+                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className="post-confirmation__photo-pair"><figure><img src={outsidePhotoPreview ?? ''} alt="外カメラで撮影した状況写真" /><figcaption>外カメラ：状況</figcaption></figure><figure><img src={insidePhotoPreview ?? ''} alt="内カメラで撮影した本人写真" /><figcaption>内カメラ：本人</figcaption></figure></div></dd></div>}
                 <div><dt>カテゴリー</dt><dd>{category}</dd></div>
                 <div><dt>お願いしたいこと</dt><dd>{type === 'come' ? '来てほしい（現地でのサポート）' : '教えてほしい（チャットでの回答）'}</dd></div>
                 <div><dt>困っていること</dt><dd className="post-confirmation__description">{description}</dd></div>
