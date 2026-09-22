@@ -23,7 +23,6 @@ const examples = [
 ]
 
 const MAX_LENGTH = 200
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 const LOCATION_PLACEHOLDER = '例）大阪市北区梅田１丁目・駅前の自動販売機の近く'
 
 export default function PostHelp() {
@@ -43,11 +42,15 @@ export default function PostHelp() {
   } | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [cameraError, setCameraError] = useState('')
   const [step, setStep] = useState<'photo' | 'input' | 'confirm'>('photo')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { user } = useAuth()
   const locationInputRef = useRef<HTMLInputElement>(null)
+  const cameraVideoRef = useRef<HTMLVideoElement>(null)
+  const cameraStreamRef = useRef<MediaStream | null>(null)
 
   const canSubmit = description.trim().length > 0 && location.trim().length > 0
   const isPrimaryDisabled = !user || isSubmitting || (step === 'photo' ? !photoFile : !canSubmit)
@@ -57,22 +60,65 @@ export default function PostHelp() {
     if (photoPreview) URL.revokeObjectURL(photoPreview)
   }, [photoPreview])
 
-  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedPhoto = event.target.files?.[0]
-    if (!selectedPhoto) return
+  const stopCamera = () => {
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
+    cameraStreamRef.current = null
+    setIsCameraOpen(false)
+  }
 
-    if (!selectedPhoto.type.startsWith('image/')) {
-      setError('写真ファイルを選択してください。')
+  useEffect(() => () => {
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
+  }, [])
+
+  useEffect(() => {
+    const video = cameraVideoRef.current
+    if (isCameraOpen && video && cameraStreamRef.current) {
+      video.srcObject = cameraStreamRef.current
+      void video.play().catch(() => setCameraError('カメラ映像を開始できませんでした。もう一度お試しください。'))
+    }
+  }, [isCameraOpen])
+
+  const openCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('このブラウザではカメラを利用できません。スマホのブラウザでお試しください。')
       return
     }
-    if (selectedPhoto.size > MAX_PHOTO_BYTES) {
-      setError('写真は5MB以下にしてください。')
+
+    setCameraError('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: 'environment' } },
+      })
+      cameraStreamRef.current = stream
+      setIsCameraOpen(true)
+    } catch {
+      setCameraError('カメラを利用できません。ブラウザのカメラ許可を確認してください。')
+    }
+  }
+
+  const capturePhoto = () => {
+    const video = cameraVideoRef.current
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+      setCameraError('カメラの準備ができていません。少し待ってから撮影してください。')
       return
     }
 
-    setError('')
-    setPhotoFile(selectedPhoto)
-    setPhotoPreview(URL.createObjectURL(selectedPhoto))
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setCameraError('写真を作成できませんでした。もう一度お試しください。')
+        return
+      }
+      const photo = new File([blob], `help-now-${Date.now()}.jpg`, { type: 'image/jpeg' })
+      setPhotoFile(photo)
+      setPhotoPreview(URL.createObjectURL(photo))
+      setCameraError('')
+      stopCamera()
+    }, 'image/jpeg', 0.88)
   }
 
   const advanceFromPhoto = (event: React.FormEvent<HTMLFormElement>) => {
@@ -188,17 +234,15 @@ export default function PostHelp() {
                 </div>
               </div>
               <div className={`post-photo-capture${photoPreview ? ' has-photo' : ''}`}>
-                {photoPreview ? <img src={photoPreview} alt="投稿する状況写真のプレビュー" /> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>現在の状況を写真で伝えましょう</strong><small>スマホではカメラが起動します</small></div>}
-                <label className="post-photo-capture__camera">
-                  <input type="file" accept="image/*" capture="environment" onChange={handlePhotoSelect} />
-                  {photoPreview ? '撮り直す' : 'カメラを起動'}
-                </label>
+                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline aria-label="カメラのプレビュー" /> : photoPreview ? <img src={photoPreview} alt="投稿する状況写真のプレビュー" /> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>現在の状況を写真で伝えましょう</strong><small>ギャラリーからは選べません</small></div>}
+                {isCameraOpen ? <button type="button" className="post-photo-capture__camera" onClick={capturePhoto}>● 撮影する</button> : <button type="button" className="post-photo-capture__camera" onClick={openCamera}>{photoPreview ? '撮り直す' : 'カメラを起動'}</button>}
               </div>
               <div className="post-photo-actions">
-                <label><input type="file" accept="image/*" onChange={handlePhotoSelect} />ギャラリーから選ぶ</label>
+                {isCameraOpen ? <button type="button" onClick={stopCamera}>カメラを閉じる</button> : <span>この場で撮影した写真のみ使えます</span>}
                 {photoPreview && <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}>写真を削除</button>}
               </div>
-              <p className="post-photo-note">顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
+              {cameraError && <p className="post-photo-error" role="alert">{cameraError}</p>}
+              <p className="post-photo-note">ギャラリーからは選べず、この場で撮影した写真だけを使えます。顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">
