@@ -7,6 +7,3 @@
 3. **ルール** タブを開き、`firestore.rules` の内容を貼り付けて公開する。
 
 `helpPosts` コレクションは、ログイン済みの本人だけが投稿でき、投稿者本人だけが編集・削除できます。
-
-写真付き投稿を使う場合は、Firebase Console で **Storage** を有効化し、
-`storage.rules` の内容を Storage の「ルール」タブへ貼り付けて公開する。

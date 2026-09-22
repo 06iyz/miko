@@ -97,7 +97,7 @@ export default function PostHelp() {
     setError('')
 
     try {
-      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates, photoFile })
+      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
       navigate('/post/complete', { replace: true, state: { postId } })
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
@@ -198,7 +198,7 @@ export default function PostHelp() {
                 <label><input type="file" accept="image/*" onChange={handlePhotoSelect} />ギャラリーから選ぶ</label>
                 {photoPreview && <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}>写真を削除</button>}
               </div>
-              <p className="post-photo-note">顔・家番号・車のナンバー・他人が写らないようにしてください。写真は投稿内容の確認にのみ使います。</p>
+              <p className="post-photo-note">顔・家番号・車のナンバー・他人が写らないようにしてください。写真はこの端末での投稿内容確認にのみ使い、Firebaseには保存しません。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">

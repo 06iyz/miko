@@ -1,8 +1,7 @@
 import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import type { User } from 'firebase/auth'
 import type { HelpCategory, HelpType } from '../types'
-import { db, storage } from './firebase'
+import { db } from './firebase'
 
 type CreateHelpPostInput = {
   category: HelpCategory
@@ -15,7 +14,6 @@ type CreateHelpPostInput = {
     longitude: number
     accuracyMeters: number
   } | null
-  photoFile?: File | null
 }
 
 function createTitle(description: string) {
@@ -32,14 +30,6 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
   }
 
   const post = doc(collection(db, 'helpPosts'))
-  let photoUrl: string | null = null
-
-  if (input.photoFile) {
-    const photoRef = ref(storage, `helpPostPhotos/${user.uid}/${post.id}`)
-    await uploadBytes(photoRef, input.photoFile, { contentType: input.photoFile.type })
-    photoUrl = await getDownloadURL(photoRef)
-  }
-
   await setDoc(post, {
     title: createTitle(description),
     description,
@@ -49,7 +39,6 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     requesterFeature: input.requesterFeature?.trim() || null,
     // 現在地を使った場合も、正確な座標ではなく約100m単位に丸めた値だけを保存する。
     approximateCoordinates: input.approximateCoordinates ?? null,
-    photoUrl,
     status: 'open',
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
