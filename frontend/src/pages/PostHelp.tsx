@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import type { HelpCategory, HelpType } from '../types'
@@ -23,6 +23,7 @@ const examples = [
 ]
 
 const MAX_LENGTH = 200
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 const LOCATION_PLACEHOLDER = '例）大阪市北区梅田１丁目・駅前の自動販売機の近く'
 
 export default function PostHelp() {
@@ -40,14 +41,46 @@ export default function PostHelp() {
     longitude: number
     accuracyMeters: number
   } | null>(null)
-  const [step, setStep] = useState<'input' | 'confirm'>('input')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [step, setStep] = useState<'photo' | 'input' | 'confirm'>('photo')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { user } = useAuth()
   const locationInputRef = useRef<HTMLInputElement>(null)
 
   const canSubmit = description.trim().length > 0 && location.trim().length > 0
+  const isPrimaryDisabled = !user || isSubmitting || (step === 'photo' ? !photoFile : !canSubmit)
   const displayName = user?.displayName || 'ゲスト'
+
+  useEffect(() => () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+  }, [photoPreview])
+
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedPhoto = event.target.files?.[0]
+    if (!selectedPhoto) return
+
+    if (!selectedPhoto.type.startsWith('image/')) {
+      setError('写真ファイルを選択してください。')
+      return
+    }
+    if (selectedPhoto.size > MAX_PHOTO_BYTES) {
+      setError('写真は5MB以下にしてください。')
+      return
+    }
+
+    setError('')
+    setPhotoFile(selectedPhoto)
+    setPhotoPreview(URL.createObjectURL(selectedPhoto))
+  }
+
+  const advanceFromPhoto = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!photoFile) return
+    setError('')
+    setStep('input')
+  }
 
   const showConfirmation = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -64,7 +97,7 @@ export default function PostHelp() {
     setError('')
 
     try {
-      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
+      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates, photoFile })
       navigate('/post/complete', { replace: true, state: { postId } })
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
@@ -130,7 +163,7 @@ export default function PostHelp() {
         </div>
       </header>
 
-      <form className="post-page__body" onSubmit={step === 'input' ? showConfirmation : publishPost}>
+      <form className="post-page__body" onSubmit={step === 'photo' ? advanceFromPhoto : step === 'input' ? showConfirmation : publishPost}>
         <main className="post-page__main">
           <section className="post-page__intro">
             <div className="post-page__intro-icon" aria-hidden="true">✎</div>
@@ -139,13 +172,35 @@ export default function PostHelp() {
               <p>困っていることを投稿して、地域のみんなに助けを求めましょう</p>
             </div>
             <ol className="post-progress" aria-label="投稿の進行状況">
-              <li className={step === 'input' ? 'is-current' : 'is-done'}><span>1</span><small>内容の入力</small></li>
-              <li className={step === 'confirm' ? 'is-current' : ''}><span>2</span><small>確認</small></li>
-              <li><span>3</span><small>投稿完了</small></li>
+              <li className={step === 'photo' ? 'is-current' : 'is-done'}><span>1</span><small>写真を撮る</small></li>
+              <li className={step === 'input' ? 'is-current' : step === 'confirm' ? 'is-done' : ''}><span>2</span><small>内容の入力</small></li>
+              <li className={step === 'confirm' ? 'is-current' : ''}><span>3</span><small>確認・投稿</small></li>
             </ol>
           </section>
 
-          {step === 'input' ? <>
+          {step === 'photo' ? (
+            <section className="post-photo-step">
+              <div className="post-step__heading">
+                <span className="post-step__number">1</span>
+                <div>
+                  <h2>いまの状況を撮影してください</h2>
+                  <p>助けに来る人が状況をイメージしやすくなります。</p>
+                </div>
+              </div>
+              <div className={`post-photo-capture${photoPreview ? ' has-photo' : ''}`}>
+                {photoPreview ? <img src={photoPreview} alt="投稿する状況写真のプレビュー" /> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>現在の状況を写真で伝えましょう</strong><small>スマホではカメラが起動します</small></div>}
+                <label className="post-photo-capture__camera">
+                  <input type="file" accept="image/*" capture="environment" onChange={handlePhotoSelect} />
+                  {photoPreview ? '撮り直す' : 'カメラを起動'}
+                </label>
+              </div>
+              <div className="post-photo-actions">
+                <label><input type="file" accept="image/*" onChange={handlePhotoSelect} />ギャラリーから選ぶ</label>
+                {photoPreview && <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}>写真を削除</button>}
+              </div>
+              <p className="post-photo-note">顔・家番号・車のナンバー・他人が写らないようにしてください。写真は投稿内容の確認にのみ使います。</p>
+            </section>
+          ) : step === 'input' ? <>
           <section className="post-step">
             <div className="post-step__heading">
               <span className="post-step__number">1</span>
@@ -255,6 +310,7 @@ export default function PostHelp() {
                 </div>
               </div>
               <dl className="post-confirmation__details">
+                {photoPreview && <div className="post-confirmation__photo"><dt>状況写真</dt><dd><img src={photoPreview} alt="投稿する状況写真" /></dd></div>}
                 <div><dt>カテゴリー</dt><dd>{category}</dd></div>
                 <div><dt>お願いしたいこと</dt><dd>{type === 'come' ? '来てほしい（現地でのサポート）' : '教えてほしい（チャットでの回答）'}</dd></div>
                 <div><dt>困っていること</dt><dd className="post-confirmation__description">{description}</dd></div>
@@ -298,12 +354,12 @@ export default function PostHelp() {
 
         <footer className="post-page__footer">
           {error && <p className="post-page__error" role="alert">{error}</p>}
-          <button type="button" className="post-cancel" onClick={() => step === 'confirm' ? setStep('input') : navigate(-1)}>
-            {step === 'confirm' ? '内容を修正する' : 'キャンセル'}
+          <button type="button" className="post-cancel" onClick={() => step === 'confirm' ? setStep('input') : step === 'input' ? setStep('photo') : navigate(-1)}>
+            {step === 'confirm' ? '内容を修正する' : step === 'input' ? '写真を撮り直す' : 'キャンセル'}
           </button>
-          <button type="submit" className="post-submit" disabled={!canSubmit || !user || isSubmitting}>
+          <button type="submit" className="post-submit" disabled={isPrimaryDisabled}>
             <SendIcon width={20} height={20} />
-            {step === 'input' ? '内容を確認する' : isSubmitting ? '投稿中...' : 'Helpを投稿する'}
+            {step === 'photo' ? '内容入力へ進む' : step === 'input' ? '内容を確認する' : isSubmitting ? '投稿中...' : 'Helpを投稿する'}
           </button>
         </footer>
       </form>

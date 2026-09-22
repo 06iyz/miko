@@ -64,6 +64,23 @@
 .post-location-note { margin: 7px 0 0 52px; color: #7388a0; font-size: 12px; }
 .post-location-error { margin: 7px 0 0 52px; color: #b42318 !important; font-size: 12px !important; font-weight: 700; }
 
+/* ---------- Real-time photo step ---------- */
+
+.post-photo-step { margin-top: 12px; padding: 22px 26px; border: 1px solid #e4edf2; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(53, 86, 110, .04); }
+.post-photo-capture { position: relative; min-height: 390px; margin: 20px 0 0 52px; display: grid; place-items: center; overflow: hidden; border-radius: 18px; background: linear-gradient(145deg, #38515d, #172d38); color: #fff; }
+.post-photo-capture.has-photo { background: #172d38; }
+.post-photo-capture > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+.post-photo-capture__placeholder { display: grid; justify-items: center; gap: 8px; padding: 24px; text-align: center; }
+.post-photo-capture__placeholder span { width: 58px; height: 58px; display: grid; place-items: center; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; font-size: 29px; }
+.post-photo-capture__placeholder strong { font-size: 17px; }
+.post-photo-capture__placeholder small { color: rgba(255,255,255,.78); }
+.post-photo-capture__camera { position: absolute; z-index: 1; bottom: 20px; left: 50%; transform: translateX(-50%); min-width: 164px; min-height: 52px; display: grid; place-items: center; border: 2px solid #fff; border-radius: 999px; background: rgba(8, 55, 63, .72); color: #fff; font-weight: 800; cursor: pointer; backdrop-filter: blur(6px); }
+.post-photo-capture__camera input, .post-photo-actions input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.post-photo-actions { margin: 12px 0 0 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.post-photo-actions label, .post-photo-actions button { border: 0; background: transparent; color: #087f7c; font-size: 14px; font-weight: 800; cursor: pointer; }
+.post-photo-actions label { position: relative; }
+.post-photo-note { margin: 12px 0 0 52px; padding: 11px 13px; border-radius: 10px; background: #fff7e9; color: #765325; font-size: 12px; line-height: 1.55; }
+
 .post-confirmation { margin-top: 12px; padding: 28px; border: 1px solid #dce9ed; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(53, 86, 110, .04); }
 .post-confirmation__heading { display: flex; gap: 14px; align-items: flex-start; }
 .post-confirmation__heading h2 { margin: 3px 0; font-size: 21px; }
@@ -74,6 +91,8 @@
 .post-confirmation__details dt { padding: 14px 16px; background: #f3f8fa; color: #47627e; font-size: 14px; font-weight: 800; }
 .post-confirmation__details dd { margin: 0; padding: 14px 16px; color: #19334f; line-height: 1.6; white-space: pre-wrap; }
 .post-confirmation__description { min-height: 84px; }
+.post-confirmation__photo dd { padding: 12px; }
+.post-confirmation__photo img { display: block; width: min(320px, 100%); max-height: 240px; border-radius: 9px; object-fit: cover; }
 .post-confirmation__privacy { margin: 13px 0 0 52px; padding: 11px 13px; border-radius: 10px; background: #edf8f5; color: #397866; font-size: 13px; }
 
 .post-complete-page { min-height: 100%; display: grid; place-items: center; }
@@ -147,6 +166,7 @@
   .post-page__intro p { font-size: 12px; }
   .post-step { padding: 17px; }
   .post-categories, .post-description, .post-feature-field, .post-help-types, .post-location-field { margin-left: 0; width: 100%; }
+  .post-photo-capture, .post-photo-actions, .post-photo-note { margin-left: 0; }
   .post-confirmation__details { margin-left: 0; }
   .post-confirmation__privacy { margin-left: 0; }
   .post-location-note, .post-location-error { margin-left: 0; }
@@ -167,6 +187,8 @@
   .post-complete { width: calc(100% - 28px); margin: 18px auto; padding: 28px 18px; }
   .post-complete .post-progress { display: flex; transform: scale(.82); margin-bottom: 20px; }
   .post-complete__actions { grid-template-columns: 1fr; }
+  .post-photo-step { padding: 17px; }
+  .post-photo-capture { min-height: min(68vh, 480px); }
 }
 
 @media (max-width: 390px) {
