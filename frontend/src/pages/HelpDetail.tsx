@@ -26,12 +26,34 @@ type PrivateLocation = {
   approximateCoordinates: { latitude: number; longitude: number } | null
 }
 
+type Coordinates = { latitude: number; longitude: number }
+
 function getDirectionsUrl(location: PrivateLocation) {
   if (location.approximateCoordinates) {
     const { latitude, longitude } = location.approximateCoordinates
     return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`
   }
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.location)}`
+}
+
+function distanceBetween(from: Coordinates, to: Coordinates) {
+  const earthRadius = 6371000
+  const toRadians = (value: number) => value * Math.PI / 180
+  const latitudeDifference = toRadians(to.latitude - from.latitude)
+  const longitudeDifference = toRadians(to.longitude - from.longitude)
+  const a = Math.sin(latitudeDifference / 2) ** 2
+    + Math.cos(toRadians(from.latitude)) * Math.cos(toRadians(to.latitude)) * Math.sin(longitudeDifference / 2) ** 2
+  return Math.round(earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+}
+
+function helperPinPosition(helper: Coordinates, destination: Coordinates) {
+  const northMeters = (helper.latitude - destination.latitude) * 111000
+  const eastMeters = (helper.longitude - destination.longitude) * 111000 * Math.cos(destination.latitude * Math.PI / 180)
+  const scale = Math.max(240, Math.abs(northMeters) * 1.7, Math.abs(eastMeters) * 1.7)
+  return {
+    x: Math.min(84, Math.max(16, 50 + eastMeters / scale * 34)),
+    y: Math.min(82, Math.max(24, 37 - northMeters / scale * 34)),
+  }
 }
 
 export default function HelpDetail() {
@@ -42,6 +64,9 @@ export default function HelpDetail() {
   const [liveHelp, setLiveHelp] = useState<LiveHelp | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [privateLocation, setPrivateLocation] = useState<PrivateLocation | null>(null)
+  const [helperPosition, setHelperPosition] = useState<Coordinates | null>(null)
+  const [isGettingHelperPosition, setIsGettingHelperPosition] = useState(false)
+  const [helperPositionError, setHelperPositionError] = useState('')
   const [isAccepting, setIsAccepting] = useState(false)
   const [actionError, setActionError] = useState('')
 
@@ -109,6 +134,29 @@ export default function HelpDetail() {
     }
   }
 
+  const requestHelperPosition = () => {
+    if (!navigator.geolocation) {
+      setHelperPositionError('このブラウザでは現在地を確認できません。スマホのブラウザでお試しください。')
+      return
+    }
+
+    setIsGettingHelperPosition(true)
+    setHelperPositionError('')
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setHelperPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+        setIsGettingHelperPosition(false)
+      },
+      (positionError) => {
+        setHelperPositionError(positionError.code === positionError.PERMISSION_DENIED
+          ? '現在地の利用が許可されませんでした。許可すると地図にあなたの位置を表示できます。'
+          : '現在地を確認できませんでした。電波の良い場所で、もう一度お試しください。')
+        setIsGettingHelperPosition(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+    )
+  }
+
   if (isLoading) {
     return <div className="screen screen--narrow"><TopBar title="Helpの詳細" /><p className="detail-loading">読み込み中...</p></div>
   }
@@ -137,6 +185,9 @@ export default function HelpDetail() {
   }
 
   const hasAnotherHelper = liveHelp.status === 'matched' && !isAuthor && !isAcceptedHelper
+  const destination = privateLocation?.approximateCoordinates ?? null
+  const routeDistance = helperPosition && destination ? distanceBetween(helperPosition, destination) : null
+  const helperPin = helperPosition && destination ? helperPinPosition(helperPosition, destination) : null
 
   return (
     <div className="screen screen--narrow">
@@ -155,6 +206,24 @@ export default function HelpDetail() {
             </div>
           </div>
           {privateLocation && <button type="button" className="btn btn--outline btn--block detail-route-button" onClick={() => window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')}>地図でルートを見る</button>}
+          {isAcceptedHelper && privateLocation && destination && (
+            <section className="helper-route-map" aria-label="助けに向かうための地図">
+              <div className="helper-route-map__heading">
+                <div><p>助けに向かう地図</p><small>{routeDistance === null ? '現在地を表示すると、2人の位置と距離を確認できます' : `目的地まで約${routeDistance >= 1000 ? `${(routeDistance / 1000).toFixed(1)}km` : `${routeDistance}m`}`}</small></div>
+                <span>徒歩</span>
+              </div>
+              <div className="helper-route-map__canvas">
+                {helperPin && <svg className="helper-route-map__line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1={helperPin.x} y1={helperPin.y} x2="50" y2="37" /></svg>}
+                <div className="helper-route-map__destination" aria-label="助けを求めている人の位置"><span>●</span><small>助けを求めている人</small></div>
+                {helperPin ? <div className="helper-route-map__helper" style={{ left: `${helperPin.x}%`, top: `${helperPin.y}%` }} aria-label="あなたの現在地"><span>●</span><small>あなた</small></div> : <div className="helper-route-map__unknown">現在地を表示すると<br />あなたのピンとルートが出ます</div>}
+              </div>
+              <div className="helper-route-map__actions">
+                <button type="button" className="btn btn--outline" onClick={requestHelperPosition} disabled={isGettingHelperPosition}>{isGettingHelperPosition ? '現在地を確認中...' : helperPosition ? '現在地を更新' : '現在地を表示'}</button>
+                <button type="button" className="btn btn--primary" onClick={() => window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')}>地図アプリで案内</button>
+              </div>
+              {helperPositionError && <p className="helper-route-map__error" role="alert">{helperPositionError}</p>}
+            </section>
+          )}
           {actionError && <p className="detail-action-error" role="alert">{actionError}</p>}
         </div>
       </div>
