@@ -836,6 +836,33 @@ p {
   background: var(--bg-muted);
 }
 
+.detail-thumb--map {
+  display: block;
+  overflow: hidden;
+}
+
+.helper-route-map__leaflet {
+  width: 100%;
+  height: 100%;
+  background: #dfeaf0;
+}
+
+.route-map-marker {
+  display: grid;
+  place-items: center;
+  width: 34px !important;
+  height: 34px !important;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 9px rgba(21, 52, 76, .28);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.route-map-marker--destination { background: #e35d6a; }
+.route-map-marker--helper { background: #078e8d; }
+
 .detail-body {
   padding: 18px var(--gutter) 28px;
 }
@@ -923,6 +950,7 @@ p {
 .helper-route-map__heading p { font-size: 14px; font-weight: 800; }
 .helper-route-map__heading small { display: block; margin-top: 3px; color: var(--text-secondary); font-size: 11px; line-height: 1.45; }
 .helper-route-map__heading > span { padding: 5px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 800; }
+.helper-route-map__message { margin: 0; padding: 0 14px 13px; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
 
 .helper-route-map__canvas {
   position: relative;

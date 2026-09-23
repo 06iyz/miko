@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore'
 import { mockHelps } from '../data/mockHelps'
 import TopBar from '../components/TopBar'
 import HelpTag from '../components/HelpTag'
+import HelperRouteMap from '../components/HelperRouteMap'
 import { LocationIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
@@ -44,16 +45,6 @@ function distanceBetween(from: Coordinates, to: Coordinates) {
   const a = Math.sin(latitudeDifference / 2) ** 2
     + Math.cos(toRadians(from.latitude)) * Math.cos(toRadians(to.latitude)) * Math.sin(longitudeDifference / 2) ** 2
   return Math.round(earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
-}
-
-function helperPinPosition(helper: Coordinates, destination: Coordinates) {
-  const northMeters = (helper.latitude - destination.latitude) * 111000
-  const eastMeters = (helper.longitude - destination.longitude) * 111000 * Math.cos(destination.latitude * Math.PI / 180)
-  const scale = Math.max(240, Math.abs(northMeters) * 1.7, Math.abs(eastMeters) * 1.7)
-  return {
-    x: Math.min(84, Math.max(16, 50 + eastMeters / scale * 34)),
-    y: Math.min(82, Math.max(24, 37 - northMeters / scale * 34)),
-  }
 }
 
 export default function HelpDetail() {
@@ -187,13 +178,12 @@ export default function HelpDetail() {
   const hasAnotherHelper = liveHelp.status === 'matched' && !isAuthor && !isAcceptedHelper
   const destination = privateLocation?.approximateCoordinates ?? null
   const routeDistance = helperPosition && destination ? distanceBetween(helperPosition, destination) : null
-  const helperPin = helperPosition && destination ? helperPinPosition(helperPosition, destination) : null
 
   return (
     <div className="screen screen--narrow">
       <TopBar title="Helpの詳細" />
       <div className="screen__scroll">
-        <div className="detail-thumb" aria-hidden="true">📍</div>
+        {isAcceptedHelper && destination ? <div className="detail-thumb detail-thumb--map"><HelperRouteMap destination={destination} helperPosition={helperPosition} /></div> : <div className="detail-thumb" aria-hidden="true">📍</div>}
         <div className="detail-body">
           <HelpTag type={liveHelp.type} />
           <p className="detail-time">{liveHelp.status === 'open' ? '助けを待っています' : liveHelp.status === 'matched' ? '助けに向かう人が決まりました' : '解決済み'}</p>
@@ -212,11 +202,7 @@ export default function HelpDetail() {
                 <div><p>助けに向かう地図</p><small>{routeDistance === null ? '現在地を表示すると、2人の位置と距離を確認できます' : `目的地まで約${routeDistance >= 1000 ? `${(routeDistance / 1000).toFixed(1)}km` : `${routeDistance}m`}`}</small></div>
                 <span>徒歩</span>
               </div>
-              <div className="helper-route-map__canvas">
-                {helperPin && <svg className="helper-route-map__line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1={helperPin.x} y1={helperPin.y} x2="50" y2="37" /></svg>}
-                <div className="helper-route-map__destination" aria-label="助けを求めている人の位置"><span>●</span><small>助けを求めている人</small></div>
-                {helperPin ? <div className="helper-route-map__helper" style={{ left: `${helperPin.x}%`, top: `${helperPin.y}%` }} aria-label="あなたの現在地"><span>●</span><small>あなた</small></div> : <div className="helper-route-map__unknown">現在地を表示すると<br />あなたのピンとルートが出ます</div>}
-              </div>
+              <p className="helper-route-map__message">上の地図には、あなたと助けを求めている人のピンが表示されます。</p>
               <div className="helper-route-map__actions">
                 <button type="button" className="btn btn--outline" onClick={requestHelperPosition} disabled={isGettingHelperPosition}>{isGettingHelperPosition ? '現在地を確認中...' : helperPosition ? '現在地を更新' : '現在地を表示'}</button>
                 <button type="button" className="btn btn--primary" onClick={() => window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')}>地図アプリで案内</button>
