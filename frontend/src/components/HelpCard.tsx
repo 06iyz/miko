@@ -26,7 +26,7 @@ export default function HelpCard({ help }: { help: HelpPost }) {
       <div className="help-card__body">
         <p className="help-card__title">{help.title}</p>
         <p className="help-card__meta">
-          {help.distanceM}m先・{help.postedMinutesAgo}分前
+          {help.distanceM > 0 ? `${help.distanceM}m先・` : '現在地付近・'}{help.postedMinutesAgo}分前
         </p>
       </div>
       <HelpTag type={help.type} />

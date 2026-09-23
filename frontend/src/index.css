@@ -836,6 +836,33 @@ p {
   background: var(--bg-muted);
 }
 
+.detail-thumb--map {
+  display: block;
+  overflow: hidden;
+}
+
+.helper-route-map__leaflet {
+  width: 100%;
+  height: 100%;
+  background: #dfeaf0;
+}
+
+.route-map-marker {
+  display: grid;
+  place-items: center;
+  width: 34px !important;
+  height: 34px !important;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 9px rgba(21, 52, 76, .28);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.route-map-marker--destination { background: #e35d6a; }
+.route-map-marker--helper { background: #078e8d; }
+
 .detail-body {
   padding: 18px var(--gutter) 28px;
 }
@@ -876,6 +903,81 @@ p {
   margin-top: 2px;
   font-size: 12.5px;
   color: var(--text-secondary);
+}
+
+.detail-route-button {
+  margin-top: 12px;
+}
+
+.detail-loading,
+.detail-owner-note,
+.detail-action-error {
+  margin: 24px var(--gutter);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.detail-owner-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  text-align: center;
+}
+
+.detail-action-error {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.helper-route-map {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.helper-route-map__heading {
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.helper-route-map__heading p { font-size: 14px; font-weight: 800; }
+.helper-route-map__heading small { display: block; margin-top: 3px; color: var(--text-secondary); font-size: 11px; line-height: 1.45; }
+.helper-route-map__heading > span { padding: 5px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 800; }
+.helper-route-map__message { margin: 0; padding: 0 14px 13px; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+
+.helper-route-map__canvas {
+  position: relative;
+  height: 224px;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background-color: #eaf5f2;
+  background-image: linear-gradient(25deg, transparent 48%, rgba(255,255,255,.9) 49%, rgba(255,255,255,.9) 52%, transparent 53%), linear-gradient(-38deg, transparent 46%, rgba(255,255,255,.9) 47%, rgba(255,255,255,.9) 51%, transparent 52%), linear-gradient(90deg, transparent 48%, rgba(255,255,255,.6) 49%, rgba(255,255,255,.6) 51%, transparent 52%);
+  background-size: 112px 95px, 155px 125px, 78px 100%;
+}
+
+.helper-route-map__line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.helper-route-map__line line { stroke: #078e8d; stroke-width: 2.8; stroke-linecap: round; stroke-dasharray: 5 4; }
+.helper-route-map__destination, .helper-route-map__helper { position: absolute; z-index: 1; display: grid; justify-items: center; transform: translate(-50%, -50%); color: #16324f; font-size: 11px; font-weight: 800; text-align: center; white-space: nowrap; }
+.helper-route-map__destination { top: 37%; left: 50%; }
+.helper-route-map__destination span, .helper-route-map__helper span { width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 3px 9px rgba(21, 52, 76, .2); color: #fff; font-size: 17px; line-height: 1; }
+.helper-route-map__destination span { background: #e35d6a; }
+.helper-route-map__helper span { background: #078e8d; }
+.helper-route-map__destination small, .helper-route-map__helper small { margin-top: 5px; padding: 3px 6px; border-radius: 999px; background: rgba(255,255,255,.9); box-shadow: 0 1px 5px rgba(30, 65, 88, .1); }
+.helper-route-map__unknown { position: absolute; inset: 0; display: grid; place-items: center; color: #597089; font-size: 13px; font-weight: 700; line-height: 1.6; text-align: center; }
+.helper-route-map__actions { padding: 11px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 9px; }
+.helper-route-map__actions .btn { min-height: 43px; padding: 0 8px; font-size: 13px; }
+.helper-route-map__error { margin: 0 12px 12px; color: #b42318; font-size: 12px; font-weight: 700; line-height: 1.5; }
+
+@media (max-width: 390px) {
+  .helper-route-map__actions { grid-template-columns: 1fr; }
 }
 
 /* ---------- Messages / conversation list ---------- */
@@ -1359,6 +1461,24 @@ p {
   margin-top: 6px;
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.post-history__close {
+  min-height: 34px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.post-history__close:disabled {
+  opacity: .55;
+  cursor: wait;
 }
 
 .post-history__state,

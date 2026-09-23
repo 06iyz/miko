@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import type { HelpCategory, HelpType } from '../types'
 import { db } from './firebase'
@@ -29,16 +29,20 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     throw new Error('投稿内容を入力してください。')
   }
 
-  const post = await addDoc(collection(db, 'helpPosts'), {
+  const post = doc(collection(db, 'helpPosts'))
+  const privateLocation = doc(post, 'private', 'location')
+  const batch = writeBatch(db)
+
+  // 一覧で読まれる投稿本体には、詳しい場所や座標を入れない。
+  batch.set(post, {
     title: createTitle(description),
     description,
     category: input.category,
     type: input.type,
-    location: input.location,
+    locationHint: '詳しい場所は、助ける人にのみ共有されます',
     requesterFeature: input.requesterFeature?.trim() || null,
-    // 現在地を使った場合も、正確な座標ではなく約100m単位に丸めた値だけを保存する。
-    approximateCoordinates: input.approximateCoordinates ?? null,
     status: 'open',
+    acceptedHelperUid: null,
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
     authorPhotoUrl: user.photoURL ?? null,
@@ -46,5 +50,22 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     updatedAt: serverTimestamp(),
   })
 
+  // 投稿者と、あとで「助けに行く」を選んだ人だけが読める情報。
+  batch.set(privateLocation, {
+    location: input.location,
+    approximateCoordinates: input.approximateCoordinates ?? null,
+    createdAt: serverTimestamp(),
+  })
+  await batch.commit()
+
   return post.id
+}
+
+/** 開いている投稿を引き受ける。認可は Firestore ルールでも確認する。 */
+export async function acceptHelpPost(postId: string, helperUid: string) {
+  await updateDoc(doc(db, 'helpPosts', postId), {
+    status: 'matched',
+    acceptedHelperUid: helperUid,
+    acceptedAt: serverTimestamp(),
+  })
 }
