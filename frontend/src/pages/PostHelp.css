@@ -72,11 +72,13 @@
 .post-photo-capture > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
 .post-photo-capture__video { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
 .post-photo-capture__pair { width: 100%; height: 100%; position: absolute; inset: 0; background: #172d38; }
-.post-photo-capture__pair figure { min-width: 0; margin: 0; position: absolute; overflow: hidden; }
+.post-photo-capture__pair figure, .post-photo-capture__pair button { min-width: 0; margin: 0; position: absolute; overflow: hidden; }
 .post-photo-capture__pair img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .post-photo-capture__outside { inset: 0; }
-.post-photo-capture__inside { z-index: 1; top: 16px; left: 16px; width: clamp(106px, 31%, 178px); aspect-ratio: 3 / 4; border: 4px solid rgba(8, 22, 30, .92); border-radius: 22px; box-shadow: 0 7px 19px rgba(0, 0, 0, .35); background: #172d38; }
-.post-photo-capture__pair figcaption { position: absolute; right: 8px; bottom: 8px; padding: 3px 7px; border-radius: 999px; background: rgba(10, 30, 37, .72); color: #fff; font-size: 11px; font-weight: 800; }
+.post-photo-capture__inside { z-index: 1; top: 16px; left: 16px; width: clamp(106px, 31%, 178px); padding: 0; aspect-ratio: 3 / 4; border: 4px solid rgba(8, 22, 30, .92); border-radius: 22px; box-shadow: 0 7px 19px rgba(0, 0, 0, .35); background: #172d38; color: #fff; cursor: pointer; }
+.post-photo-capture__pair figcaption, .post-photo-capture__inside > span { position: absolute; right: 8px; bottom: 8px; padding: 3px 7px; border-radius: 999px; background: rgba(10, 30, 37, .72); color: #fff; font-size: 11px; font-weight: 800; }
+.post-photo-capture__pair.is-swapped .post-photo-capture__outside { z-index: 1; top: 16px; right: auto; bottom: auto; left: 16px; width: clamp(106px, 31%, 178px); aspect-ratio: 3 / 4; border: 4px solid rgba(8, 22, 30, .92); border-radius: 22px; box-shadow: 0 7px 19px rgba(0, 0, 0, .35); }
+.post-photo-capture__pair.is-swapped .post-photo-capture__inside { z-index: 0; inset: 0; width: auto; aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
 .post-photo-capture__placeholder { display: grid; justify-items: center; gap: 8px; padding: 24px; text-align: center; }
 .post-photo-capture__placeholder span { width: 58px; height: 58px; display: grid; place-items: center; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; font-size: 29px; }
 .post-photo-capture__placeholder strong { font-size: 17px; }
@@ -101,11 +103,13 @@
 .post-confirmation__description { min-height: 84px; }
 .post-confirmation__photo dd { padding: 12px; }
 .post-confirmation__photo-pair { position: relative; width: min(430px, 100%); aspect-ratio: 4 / 3; overflow: hidden; border-radius: 11px; background: #172d38; }
-.post-confirmation__photo-pair figure { margin: 0; min-width: 0; position: absolute; overflow: hidden; }
+.post-confirmation__photo-pair figure, .post-confirmation__photo-pair button { margin: 0; min-width: 0; position: absolute; overflow: hidden; }
 .post-confirmation__photo-pair img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .post-confirmation__outside { inset: 0; }
-.post-confirmation__inside { z-index: 1; top: 10px; left: 10px; width: 30%; aspect-ratio: 3 / 4; border: 3px solid rgba(8, 22, 30, .92); border-radius: 13px; box-shadow: 0 4px 12px rgba(0, 0, 0, .32); }
-.post-confirmation__photo-pair figcaption { position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 999px; background: rgba(10, 30, 37, .72); color: #fff; font-size: 10px; font-weight: 700; }
+.post-confirmation__inside { z-index: 1; top: 10px; left: 10px; width: 30%; padding: 0; aspect-ratio: 3 / 4; border: 3px solid rgba(8, 22, 30, .92); border-radius: 13px; box-shadow: 0 4px 12px rgba(0, 0, 0, .32); background: #172d38; color: #fff; cursor: pointer; }
+.post-confirmation__photo-pair figcaption, .post-confirmation__inside > span { position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 999px; background: rgba(10, 30, 37, .72); color: #fff; font-size: 10px; font-weight: 700; }
+.post-confirmation__photo-pair.is-swapped .post-confirmation__outside { z-index: 1; top: 10px; right: auto; bottom: auto; left: 10px; width: 30%; aspect-ratio: 3 / 4; border: 3px solid rgba(8, 22, 30, .92); border-radius: 13px; box-shadow: 0 4px 12px rgba(0, 0, 0, .32); }
+.post-confirmation__photo-pair.is-swapped .post-confirmation__inside { z-index: 0; inset: 0; width: auto; aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
 .post-confirmation__privacy { margin: 13px 0 0 52px; padding: 11px 13px; border-radius: 10px; background: #edf8f5; color: #397866; font-size: 13px; }
 
 .post-complete-page { min-height: 100%; display: grid; place-items: center; }

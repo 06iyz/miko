@@ -34,6 +34,8 @@ export default function PostHelp() {
   const [requesterFeature, setRequesterFeature] = useState('')
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false)
   const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [isPhotoLocationDialogOpen, setIsPhotoLocationDialogOpen] = useState(false)
+  const [isGettingPhotoLocation, setIsGettingPhotoLocation] = useState(false)
   const [locationError, setLocationError] = useState('')
   const [approximateCoordinates, setApproximateCoordinates] = useState<{
     latitude: number
@@ -42,6 +44,7 @@ export default function PostHelp() {
   } | null>(null)
   const [outsidePhotoPreview, setOutsidePhotoPreview] = useState<string | null>(null)
   const [insidePhotoPreview, setInsidePhotoPreview] = useState<string | null>(null)
+  const [isPhotoLayoutSwapped, setIsPhotoLayoutSwapped] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment')
   const [isInnerPhotoAutomatic, setIsInnerPhotoAutomatic] = useState(false)
@@ -171,6 +174,7 @@ export default function PostHelp() {
     photoUrlsRef.current = []
     setOutsidePhotoPreview(null)
     setInsidePhotoPreview(null)
+    setIsPhotoLayoutSwapped(false)
     setCameraFacing('environment')
     setCameraError('')
   }
@@ -212,6 +216,52 @@ export default function PostHelp() {
     window.setTimeout(() => locationInputRef.current?.focus(), 0)
   }
 
+  const saveApproximateLocation = (position: GeolocationPosition) => {
+    const latitude = Number(position.coords.latitude.toFixed(3))
+    const longitude = Number(position.coords.longitude.toFixed(3))
+    const accuracyMeters = Math.round(position.coords.accuracy)
+
+    setApproximateCoordinates({ latitude, longitude, accuracyMeters })
+    setLocation('現在地付近（約100mの範囲）')
+  }
+
+  const startPhotoCapture = () => {
+    setCameraError('')
+    if (approximateCoordinates) {
+      void openCamera('environment')
+      return
+    }
+    setIsPhotoLocationDialogOpen(true)
+  }
+
+  const requestLocationForPhoto = () => {
+    if (!navigator.geolocation) {
+      setCameraError('このブラウザでは現在地を確認できません。撮影を始めるには、現在地を使えるスマホのブラウザで開いてください。')
+      setIsPhotoLocationDialogOpen(false)
+      return
+    }
+
+    setIsGettingPhotoLocation(true)
+    setCameraError('')
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        saveApproximateLocation(position)
+        setIsGettingPhotoLocation(false)
+        setIsPhotoLocationDialogOpen(false)
+        void openCamera('environment')
+      },
+      (positionError) => {
+        const message = positionError.code === positionError.PERMISSION_DENIED
+          ? '現在地の利用が許可されなかったため、撮影を始められません。許可してからもう一度お試しください。'
+          : '現在地を確認できませんでした。電波の良い場所で、もう一度お試しください。'
+        setCameraError(message)
+        setIsGettingPhotoLocation(false)
+        setIsPhotoLocationDialogOpen(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
+  }
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('このブラウザでは現在地を取得できません。住所や目印を手入力してください。')
@@ -223,12 +273,7 @@ export default function PostHelp() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         // 小数第3位までに丸めると、緯度・経度ともおよそ100m単位になる。
-        const latitude = Number(position.coords.latitude.toFixed(3))
-        const longitude = Number(position.coords.longitude.toFixed(3))
-        const accuracyMeters = Math.round(position.coords.accuracy)
-
-        setApproximateCoordinates({ latitude, longitude, accuracyMeters })
-        setLocation('現在地付近（約100mの範囲）')
+        saveApproximateLocation(position)
         setIsGettingLocation(false)
         setIsLocationDialogOpen(false)
         window.setTimeout(() => locationInputRef.current?.focus(), 0)
@@ -288,8 +333,8 @@ export default function PostHelp() {
                 </div>
               </div>
               <div className={`post-photo-capture${hasRequiredPhotos ? ' has-photo' : ''}`}>
-                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasRequiredPhotos ? <div className="post-photo-capture__pair"><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><figure className="post-photo-capture__inside"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><figcaption>あなたの写真</figcaption></figure></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
-                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) { resetPhotos(); void openCamera('environment') } else { void openCamera('environment') } }}>{hasRequiredPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
+                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasRequiredPhotos ? <div className={`post-photo-capture__pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-photo-capture__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
+                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) resetPhotos(); startPhotoCapture() }}>{hasRequiredPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
               </div>
               <div className="post-photo-actions">
                 {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>まわりを撮ったあと、自分の写真を自動で撮ります</span>}
@@ -387,8 +432,9 @@ export default function PostHelp() {
                 ref={locationInputRef}
                 value={location}
                 onChange={(event) => {
-                  setLocation(event.target.value)
-                  setApproximateCoordinates(null)
+                  const nextLocation = event.target.value
+                  setLocation(nextLocation)
+                  if (!nextLocation.startsWith('現在地付近')) setApproximateCoordinates(null)
                 }}
                 placeholder={LOCATION_PLACEHOLDER}
                 aria-label="場所と目印"
@@ -408,7 +454,7 @@ export default function PostHelp() {
                 </div>
               </div>
               <dl className="post-confirmation__details">
-                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className="post-confirmation__photo-pair"><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><figure className="post-confirmation__inside"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><figcaption>あなたの写真</figcaption></figure></div></dd></div>}
+                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className={`post-confirmation__photo-pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-confirmation__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div></dd></div>}
                 <div><dt>困りごとの種類</dt><dd>{category}</dd></div>
                 <div><dt>お願いしたいこと</dt><dd>{type === 'come' ? '来てほしい（現地でのサポート）' : '教えてほしい（チャットでの回答）'}</dd></div>
                 <div><dt>困っていること</dt><dd className="post-confirmation__description">{description}</dd></div>
@@ -461,6 +507,27 @@ export default function PostHelp() {
           </button>
         </footer>
       </form>
+
+      {isPhotoLocationDialogOpen && (
+        <div className="post-location-dialog-backdrop" role="presentation" onMouseDown={() => !isGettingPhotoLocation && setIsPhotoLocationDialogOpen(false)}>
+          <section className="post-location-dialog" role="dialog" aria-modal="true" aria-labelledby="photo-location-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="post-location-dialog__icon" aria-hidden="true"><LocationIcon width={28} height={28} /></div>
+            <h2 id="photo-location-dialog-title">撮影前に現在地を確認します</h2>
+            <p>助けに来る人が近くまで向かいやすくなるように、撮影前に現在地の利用を確認します。</p>
+            <ul>
+              <li>公開される場所は約100mの範囲です</li>
+              <li>正確な場所がすぐに公開されることはありません</li>
+              <li>許可すると、続けてカメラが開きます</li>
+            </ul>
+            <div className="post-location-dialog__actions">
+              <button type="button" className="post-location-dialog__cancel" onClick={() => setIsPhotoLocationDialogOpen(false)} disabled={isGettingPhotoLocation}>やめる</button>
+              <button type="button" onClick={requestLocationForPhoto} disabled={isGettingPhotoLocation}>
+                {isGettingPhotoLocation ? '現在地を確認中...' : '許可して撮影を始める'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {isLocationDialogOpen && (
         <div className="post-location-dialog-backdrop" role="presentation" onMouseDown={() => setIsLocationDialogOpen(false)}>
