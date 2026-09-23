@@ -878,6 +878,32 @@ p {
   color: var(--text-secondary);
 }
 
+.detail-route-button {
+  margin-top: 12px;
+}
+
+.detail-loading,
+.detail-owner-note,
+.detail-action-error {
+  margin: 24px var(--gutter);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.detail-owner-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  text-align: center;
+}
+
+.detail-action-error {
+  color: #b42318;
+  font-weight: 700;
+}
+
 /* ---------- Messages / conversation list ---------- */
 
 .conversation-list {

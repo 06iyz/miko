@@ -9,11 +9,45 @@ service cloud.firestore {
       // 投稿者の UID は、必ず Firebase Authentication の本人と一致させる。
       allow create: if request.auth != null
         && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.status == 'open';
+        && request.resource.data.status == 'open'
+        && request.resource.data.acceptedHelperUid == null
+        && request.resource.data.keys().hasOnly([
+          'title', 'description', 'category', 'type', 'locationHint',
+          'requesterFeature', 'status', 'acceptedHelperUid', 'authorUid',
+          'authorName', 'authorPhotoUrl', 'createdAt', 'updatedAt'
+        ]);
 
-      // 投稿の編集・削除は投稿者本人だけに限定する。
-      allow update, delete: if request.auth != null
+      // 投稿者は自分の投稿を編集・削除できる。
+      allow update: if request.auth != null
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt']);
+      allow delete: if request.auth != null
         && resource.data.authorUid == request.auth.uid;
+
+      // 募集中の投稿は、投稿者以外のログイン済みユーザーが1人だけ引き受けられる。
+      allow update: if request.auth != null
+        && resource.data.authorUid != request.auth.uid
+        && resource.data.status == 'open'
+        && resource.data.acceptedHelperUid == null
+        && request.resource.data.status == 'matched'
+        && request.resource.data.acceptedHelperUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'acceptedHelperUid', 'acceptedAt']);
+
+      // 詳しい場所は、投稿者または引き受けた人だけが読める。
+      match /private/{privateDocument} {
+        allow read: if request.auth != null
+          && (get(/databases/$(database)/documents/helpPosts/$(postId)).data.authorUid == request.auth.uid
+            || get(/databases/$(database)/documents/helpPosts/$(postId)).data.acceptedHelperUid == request.auth.uid);
+
+        // 投稿を作るときに、投稿者が同時に場所情報を保存する。
+        allow create: if request.auth != null
+          && getAfter(/databases/$(database)/documents/helpPosts/$(postId)).data.authorUid == request.auth.uid;
+
+        allow update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/helpPosts/$(postId)).data.authorUid == request.auth.uid;
+      }
     }
 
     match /userProfiles/{userId} {
