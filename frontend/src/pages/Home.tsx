@@ -7,10 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import type { HelpCategory, HelpPost } from '../types'
 
-const tabs = ['近くのHelp', 'みんなの投稿', 'フォロー'] as const
-
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>(tabs[0])
   const [liveHelps, setLiveHelps] = useState<HelpPost[]>([])
   const { user } = useAuth()
 
@@ -50,19 +47,6 @@ export default function Home() {
           <BellIcon />
         </button>
       </header>
-
-      <div className="tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`tabs__item${tab === activeTab ? ' is-active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
 
       <div className="screen__scroll">
         <div className="near-banner">
