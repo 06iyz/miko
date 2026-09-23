@@ -21,17 +21,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        try {
-          await ensureUserProfile(currentUser)
-        } catch (error) {
-          console.error('Failed to prepare user profile', error)
-        }
-      }
-
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
       setLoading(false)
+
+      if (currentUser) {
+        void ensureUserProfile(currentUser).catch((error) => {
+          console.error('Failed to prepare user profile', error)
+        })
+      }
     })
 
     return unsubscribe
