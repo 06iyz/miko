@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import { mockHelps } from '../data/mockHelps'
 import HelpCard from '../components/HelpCard'
 import BottomNav from '../components/BottomNav'
 import { BellIcon, UserIcon } from '../components/icons'
@@ -8,10 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import type { HelpCategory, HelpPost } from '../types'
 
-const tabs = ['近くのHelp', 'みんなの投稿', 'フォロー'] as const
-
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>(tabs[0])
   const [liveHelps, setLiveHelps] = useState<HelpPost[]>([])
   const { user } = useAuth()
 
@@ -40,7 +36,8 @@ export default function Home() {
     }, () => setLiveHelps([]))
   }, [user?.uid])
 
-  const helps = [...liveHelps, ...mockHelps]
+  // 見本データを混ぜず、Firestore の実投稿だけを表示する。
+  const helps = liveHelps
 
   return (
     <div className="screen">
@@ -51,34 +48,25 @@ export default function Home() {
         </button>
       </header>
 
-      <div className="tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`tabs__item${tab === activeTab ? ' is-active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
       <div className="screen__scroll">
         <div className="near-banner">
           <span className="near-banner__icon">
             <UserIcon />
           </span>
           <p>
-            今、近くで<strong>3人</strong>がHelp中
+            今、近くで<strong>{helps.length}人</strong>がHelp中
           </p>
         </div>
 
-        <div className="help-list">
-          {helps.map((help) => (
-            <HelpCard key={help.id} help={help} />
-          ))}
-        </div>
+        {helps.length === 0 ? (
+          <p className="empty-state">まだ近くのHelpはありません。投稿されると、ここに表示されます。</p>
+        ) : (
+          <div className="help-list">
+            {helps.map((help) => (
+              <HelpCard key={help.id} help={help} />
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />

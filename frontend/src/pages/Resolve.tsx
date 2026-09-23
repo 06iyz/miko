@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { mockConversations, mockHelps } from '../data/mockHelps'
 import { StarIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { recordHelped } from '../lib/userProfile'
@@ -8,11 +7,8 @@ import { recordHelped } from '../lib/userProfile'
 export default function Resolve() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const help = mockHelps.find((h) => h.id === id) ?? mockHelps[0]
-  const conversation = mockConversations.find((c) => c.helpId === id) ?? mockConversations[0]
   const { user } = useAuth()
-
-  const [rating, setRating] = useState(5)
+  const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
   const [isSending, setIsSending] = useState(false)
 
@@ -20,7 +16,7 @@ export default function Resolve() {
     if (isSending) return
     setIsSending(true)
     try {
-      if (user) await recordHelped(user.uid, help.id)
+      if (user && id) await recordHelped(user.uid, id)
       navigate('/home')
     } finally {
       setIsSending(false)
@@ -30,32 +26,27 @@ export default function Resolve() {
   return (
     <div className="screen screen--narrow resolve-screen">
       <div className="screen__scroll resolve-body">
-        <div className="resolve-confetti" aria-hidden="true">
-          🎉
-        </div>
+        <div className="resolve-confetti" aria-hidden="true">🎉</div>
         <h1>Helpが解決しました！</h1>
         <p className="resolve-sub">
-          助け合い、ありがとうございました。
-          <br />
-          よろしければ評価をお願いします。
+          助け合い、ありがとうございます。<br />
+          よければ感想を教えてください。
         </p>
 
-        <div className="resolve-avatar" aria-hidden="true">
-          {conversation.partner.name.slice(0, 1)}
-        </div>
-        <p className="resolve-name">{conversation.partner.name}</p>
-        <p className="resolve-help-title">{help.title}</p>
+        <div className="resolve-avatar" aria-hidden="true">相</div>
+        <p className="resolve-name">相手</p>
+        <p className="resolve-help-title">このHelp</p>
 
         <div className="resolve-stars">
-          {[1, 2, 3, 4, 5].map((n) => (
+          {[1, 2, 3, 4, 5].map((number) => (
             <button
-              key={n}
+              key={number}
               type="button"
-              aria-label={`${n}つ星`}
-              onClick={() => setRating(n)}
+              aria-label={`${number}つ星`}
+              onClick={() => setRating(number)}
               className="resolve-stars__btn"
             >
-              <StarIcon filled={n <= rating} />
+              <StarIcon filled={number <= rating} />
             </button>
           ))}
         </div>
@@ -64,7 +55,7 @@ export default function Resolve() {
           className="resolve-comment"
           placeholder="コメントを入力（任意）"
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(event) => setComment(event.target.value)}
         />
       </div>
 
@@ -72,9 +63,7 @@ export default function Resolve() {
         <button type="button" className="btn btn--primary btn--block" onClick={() => void sendResolution()} disabled={isSending}>
           {isSending ? '送信中...' : '送信する'}
         </button>
-        <button type="button" className="btn btn--text" onClick={() => navigate('/home')}>
-          あとで
-        </button>
+        <button type="button" className="btn btn--text" onClick={() => navigate('/home')}>あとで</button>
       </div>
     </div>
   )

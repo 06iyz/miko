@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { mockHelps } from '../data/mockHelps'
 import TopBar from '../components/TopBar'
 import HelpTag from '../components/HelpTag'
 import HelperRouteMap from '../components/HelperRouteMap'
@@ -49,9 +48,7 @@ function distanceBetween(from: Coordinates, to: Coordinates) {
 
 export default function HelpDetail() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { user } = useAuth()
-  const mockHelp = mockHelps.find((help) => help.id === id) ?? mockHelps[0]
   const [liveHelp, setLiveHelp] = useState<LiveHelp | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [privateLocation, setPrivateLocation] = useState<PrivateLocation | null>(null)
@@ -153,23 +150,11 @@ export default function HelpDetail() {
   }
 
   if (!liveHelp) {
-    const walkMinutes = Math.max(1, Math.round(mockHelp.distanceM / 80))
     return (
       <div className="screen screen--narrow">
         <TopBar title="Helpの詳細" />
         <div className="screen__scroll">
-          <div className="detail-thumb" aria-hidden="true">📍</div>
-          <div className="detail-body">
-            <HelpTag type={mockHelp.type} />
-            <p className="detail-time">{mockHelp.postedMinutesAgo}分前</p>
-            <h2 className="detail-title">{mockHelp.title}</h2>
-            <p className="detail-desc">{mockHelp.description}</p>
-            <div className="detail-location"><LocationIcon /><div><p>{mockHelp.location}</p><p className="detail-location__sub">{mockHelp.distanceM}m先（徒歩約{walkMinutes}分）</p></div></div>
-          </div>
-        </div>
-        <div className="screen__footer screen__footer--stacked">
-          <button type="button" className="btn btn--primary btn--block" onClick={() => navigate(`/help/${mockHelp.id}/chat`)}>助ける</button>
-          <button type="button" className="btn btn--outline btn--block" onClick={() => navigate(`/help/${mockHelp.id}/chat`)}>チャットする</button>
+          <p className="empty-state">このHelpはまだありません。投稿されたHelpだけが表示されます。</p>
         </div>
       </div>
     )

@@ -1,33 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { mockConversations, mockHelps } from '../data/mockHelps'
 import { BackIcon, ImageIcon, SendIcon } from '../components/icons'
 import type { ChatMessage } from '../types'
 
 export default function Chat() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const help = mockHelps.find((h) => h.id === id) ?? mockHelps[0]
-  const conversation =
-  mockConversations.find((c) => c.helpId === help.id) ?? {
-    helpId: help.id,
-    partner: help.author,
-    lastMessage: '',
-    lastMessageTime: '',
-    messages: [],
-  }
-
-  const [messages, setMessages] = useState<ChatMessage[]>(conversation.messages)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState('')
 
   const handleSend = () => {
     if (!draft.trim()) return
-    setMessages((prev) => [
-      ...prev,
+    setMessages((previous) => [
+      ...previous,
       {
-        id: `local-${prev.length}`,
+        id: `local-${previous.length}`,
         sender: 'me',
-        text: draft,
+        text: draft.trim(),
         time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
       },
     ])
@@ -41,39 +30,40 @@ export default function Chat() {
           <BackIcon />
         </button>
         <div className="chat-header__info">
-          <p className="chat-header__name">{conversation.partner.name}</p>
-          <p className="chat-header__subtitle">{help.title}</p>
+          <p className="chat-header__name">メッセージ</p>
+          <p className="chat-header__subtitle">まだメッセージはありません</p>
         </div>
-        <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(`/help/${help.id}/resolve`)}>
+        <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(id ? `/help/${id}/resolve` : '/home')}>
           解決済み
         </button>
       </header>
 
       <div className="chat-thread">
-        {messages.map((m) => (
-          <div key={m.id} className={`chat-bubble-row chat-bubble-row--${m.sender}`}>
+        {messages.length === 0 && <p className="empty-state">まだメッセージはありません。</p>}
+        {messages.map((message) => (
+          <div key={message.id} className={`chat-bubble-row chat-bubble-row--${message.sender}`}>
             <div className="chat-bubble">
-              {m.text.split('\n').map((line, i) => (
-                <span key={i}>
+              {message.text.split('\n').map((line, index) => (
+                <span key={index}>
                   {line}
                   <br />
                 </span>
               ))}
             </div>
-            <span className="chat-bubble-row__time">{m.time}</span>
+            <span className="chat-bubble-row__time">{message.time}</span>
           </div>
         ))}
       </div>
 
       <div className="chat-input">
-        <button type="button" className="icon-btn" aria-label="画像を送る">
+        <button type="button" className="icon-btn" aria-label="画像を選ぶ" disabled>
           <ImageIcon />
         </button>
         <input
-          placeholder="メッセージを入力..."
+          placeholder="メッセージを入力…"
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && handleSend()}
         />
         <button type="button" className="icon-btn icon-btn--accent" aria-label="送信" onClick={handleSend}>
           <SendIcon />
