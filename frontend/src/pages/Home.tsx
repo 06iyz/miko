@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import { mockHelps } from '../data/mockHelps'
 import HelpCard from '../components/HelpCard'
 import BottomNav from '../components/BottomNav'
 import { BellIcon, UserIcon } from '../components/icons'
@@ -40,7 +39,8 @@ export default function Home() {
     }, () => setLiveHelps([]))
   }, [user?.uid])
 
-  const helps = [...liveHelps, ...mockHelps]
+  // 見本データを混ぜず、Firestore の実投稿だけを表示する。
+  const helps = liveHelps
 
   return (
     <div className="screen">
@@ -70,15 +70,19 @@ export default function Home() {
             <UserIcon />
           </span>
           <p>
-            今、近くで<strong>3人</strong>がHelp中
+            今、近くで<strong>{helps.length}人</strong>がHelp中
           </p>
         </div>
 
-        <div className="help-list">
-          {helps.map((help) => (
-            <HelpCard key={help.id} help={help} />
-          ))}
-        </div>
+        {helps.length === 0 ? (
+          <p className="empty-state">まだ近くのHelpはありません。投稿されると、ここに表示されます。</p>
+        ) : (
+          <div className="help-list">
+            {helps.map((help) => (
+              <HelpCard key={help.id} help={help} />
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />
