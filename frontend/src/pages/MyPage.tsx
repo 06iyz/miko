@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { signOut } from 'firebase/auth'
 import { collection, doc, onSnapshot, query, Timestamp, where } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
-import { db } from '../lib/firebase'
+import { auth, db } from '../lib/firebase'
 import { closePostAndRecordHelpedBy, emptyUserStats, readUserStats, type UserStats } from '../lib/userProfile'
 import BottomNav from '../components/BottomNav'
 import {
@@ -46,6 +47,21 @@ export default function MyPage() {
   const [historyError, setHistoryError] = useState('')
   const [stats, setStats] = useState<UserStats>(emptyUserStats)
   const [closingPostId, setClosingPostId] = useState<string | null>(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    setLogoutError('')
+    try {
+      await signOut(auth)
+    } catch {
+      setLogoutError('ログアウトできませんでした。もう一度お試しください。')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   useEffect(() => {
     if (!user) return
@@ -193,6 +209,15 @@ export default function MyPage() {
                 <ChevronRightIcon className="menu-list__chevron" />
               </button>
             ))}
+            <button
+              type="button"
+              className="btn btn--outline btn--block"
+              onClick={() => void handleLogout()}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+            </button>
+            {logoutError && <p role="alert">{logoutError}</p>}
           </div>
         )}
       </div>
