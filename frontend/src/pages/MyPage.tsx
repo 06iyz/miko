@@ -1,28 +1,21 @@
 import { useEffect, useState } from 'react'
 import { signOut } from 'firebase/auth'
+import { Link } from 'react-router-dom'
+import { mockConversations } from '../data/mockHelps'
 import { collection, doc, onSnapshot, query, Timestamp, where } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
 import { auth, db } from '../lib/firebase'
 import { closePostAndRecordHelpedBy, emptyUserStats, readUserStats, type UserStats } from '../lib/userProfile'
 import BottomNav from '../components/BottomNav'
 import {
-  BellIcon,
+  ChatIcon,
   ChevronRightIcon,
   ClockIcon,
-  HeartIcon,
   ListIcon,
-  QuestionIcon,
-  SettingsIcon,
 } from '../components/icons'
 import './MyPage.css'
 
-const menuItems = [
-  { label: '助けた履歴', Icon: ClockIcon },
-  { label: 'お気に入り', Icon: HeartIcon },
-  { label: 'お知らせ', Icon: BellIcon },
-  { label: '設定', Icon: SettingsIcon },
-  { label: 'ヘルプ', Icon: QuestionIcon },
-]
+import './MyPage.css'
 
 type HistoryPost = {
   id: string
@@ -30,7 +23,7 @@ type HistoryPost = {
   category: string
   type: 'come' | 'teach'
   location: string
-  status: 'open' | 'closed'
+  status: 'open' | 'matched' | 'closed'
   createdAt: Timestamp | null
 }
 
@@ -42,7 +35,6 @@ function formatPostedAt(createdAt: Timestamp | null) {
 export default function MyPage() {
   const { user, loading } = useAuth()
   const [failedPhotoURL, setFailedPhotoURL] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'history' | 'account'>('history')
   const [history, setHistory] = useState<HistoryPost[]>([])
   const [isHistoryLoading, setIsHistoryLoading] = useState(true)
   const [historyError, setHistoryError] = useState('')
@@ -81,7 +73,7 @@ export default function MyPage() {
           category: typeof data.category === 'string' ? data.category : 'その他',
           type: data.type === 'teach' ? 'teach' : 'come',
           location: typeof data.location === 'string' ? data.location : typeof data.locationHint === 'string' ? data.locationHint : '場所未設定',
-          status: data.status === 'closed' ? 'closed' : 'open',
+          status: data.status === 'closed' ? 'closed' : data.status === 'matched' ? 'matched' : 'open',
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
         }
       })
@@ -157,67 +149,83 @@ export default function MyPage() {
           </div>
           <div className="profile-card__stats">
             <div>
+              <span className="my-page__stat-emoji" aria-hidden="true">🤝</span>
               <p className="profile-card__value">{stats.helpedCount}</p>
               <p className="profile-card__label">助けた</p>
             </div>
             <div>
+              <span className="my-page__stat-emoji my-page__stat-emoji--warm" aria-hidden="true">❤️</span>
               <p className="profile-card__value">{stats.helpedByCount}</p>
-              <p className="profile-card__label">助けられた</p>
+              <p className="profile-card__label">助けてもらった</p>
             </div>
             <div>
+              <span className="my-page__stat-emoji my-page__stat-emoji--warm" aria-hidden="true">⭐</span>
               <p className="profile-card__value">{ratingLabel}</p>
               <p className="profile-card__label">評価</p>
             </div>
           </div>
         </div>
 
-        <div className="mypage-tabs" role="tablist" aria-label="マイページの表示内容">
-          <button type="button" role="tab" aria-selected={activeTab === 'history'} className={activeTab === 'history' ? 'is-active' : ''} onClick={() => setActiveTab('history')}>投稿履歴</button>
-          <button type="button" role="tab" aria-selected={activeTab === 'account'} className={activeTab === 'account' ? 'is-active' : ''} onClick={() => setActiveTab('account')}>アカウント</button>
-        </div>
-
-        {activeTab === 'history' ? (
-          <section className="post-history" aria-label="投稿履歴">
-            <div className="post-history__heading">
-              <div><h2>あなたの投稿</h2><p>投稿後もここから内容を確認できます。</p></div>
-              <span>{history.length}件</span>
-            </div>
-            {isHistoryLoading ? <p className="post-history__state">投稿履歴を読み込み中です...</p> : historyError ? <p className="post-history__state post-history__state--error">{historyError}</p> : history.length === 0 ? (
-              <div className="post-history__empty"><ListIcon /><p>まだ投稿はありません</p><span>困ったときは、ここからいつでも投稿できます。</span></div>
-            ) : (
-              <div className="post-history__list">
-                {history.map((post) => (
-                  <article key={post.id} className="post-history__item">
-                    <div className="post-history__item-top"><span className="post-history__category">{post.category}</span><span className={`post-history__status post-history__status--${post.status}`}>{post.status === 'open' ? '募集中' : '解決済み'}</span></div>
-                    <h3>{post.title}</h3>
-                    <p className="post-history__meta">{post.type === 'come' ? '来てほしい' : '教えてほしい'} ・ {post.location}</p>
-                    <time>{formatPostedAt(post.createdAt)}</time>
-                    {post.status === 'open' && <button type="button" className="post-history__close" onClick={() => void closePost(post.id)} disabled={closingPostId === post.id}>{closingPostId === post.id ? '変更中...' : '解決済みにする'}</button>}
-                  </article>
-                ))}
+        <section className="my-page__section" aria-labelledby="activity-title">
+          <h2 id="activity-title">最近の活動</h2>
+          <div className="my-page__cards">
+            {mockConversations.length ? mockConversations.slice(0, 2).map((conversation) => (
+              <Link className="my-page__card my-page__card--link" key={conversation.helpId} to={`/help/${conversation.helpId}/chat`}>
+                <span className="my-page__icon" aria-hidden="true"><ChatIcon /></span>
+                <div className="my-page__card-body">
+                  <p className="my-page__card-title">{conversation.partner.name}とのやりとり</p>
+                  <p className="my-page__description">{conversation.lastMessage}</p>
+                  <p className="my-page__meta">チャット · {conversation.lastMessageTime}</p>
+                </div>
+                <ChevronRightIcon className="my-page__chevron" aria-hidden="true" />
+              </Link>
+            )) : (
+              <div className="my-page__card">
+                <span className="my-page__icon" aria-hidden="true"><ClockIcon /></span>
+                <p className="my-page__description">まだ活動はありません</p>
               </div>
             )}
-          </section>
-        ) : (
-          <div className="menu-list">
-            {menuItems.map(({ label, Icon }) => (
-              <button key={label} type="button" className="menu-list__item">
-                <Icon />
-                <span>{label}</span>
-                <ChevronRightIcon className="menu-list__chevron" />
-              </button>
-            ))}
-            <button
-              type="button"
-              className="btn btn--outline btn--block"
-              onClick={() => void handleLogout()}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
-            </button>
-            {logoutError && <p role="alert">{logoutError}</p>}
           </div>
-        )}
+        </section>
+        <section className="my-page__section" aria-labelledby="posts-title">
+          <h2 id="posts-title">自分の投稿</h2>
+          {historyError && <p className="post-history__state post-history__state--error" role="alert">{historyError}</p>}
+          <div className="my-page__cards">
+            {isHistoryLoading ? <p className="my-page__description">投稿履歴を読み込み中です...</p> : history.length ? history.map((post) => (
+              <article key={post.id}>
+                <Link className="my-page__card my-page__card--link" to={`/help/${post.id}`}>
+                  <span className="my-page__icon" aria-hidden="true"><ListIcon /></span>
+                  <div className="my-page__card-body">
+                    <p className="my-page__card-title">{post.title}</p>
+                    <p className="my-page__meta">{post.category} · {post.type === 'come' ? '来てほしい' : '教えてほしい'}</p>
+                    <p className="my-page__meta">{post.location} · {formatPostedAt(post.createdAt)}</p>
+                    <p className="my-page__meta">{post.status === 'closed' ? '解決済み' : post.status === 'matched' ? '担当者が決まりました' : '募集中'}</p>
+                  </div>
+                  <ChevronRightIcon className="my-page__chevron" aria-hidden="true" />
+                </Link>
+                {post.status !== 'closed' && (
+                  <button type="button" className="post-history__close" onClick={() => void closePost(post.id)} disabled={closingPostId !== null}>
+                    {closingPostId === post.id ? '変更中...' : '解決済みにする'}
+                  </button>
+                )}
+              </article>
+            )) : !historyError && (
+              <div className="my-page__card my-page__empty">
+                <span className="my-page__icon" aria-hidden="true"><ListIcon /></span>
+                <p className="my-page__card-title">まだ投稿はありません</p>
+                <p className="my-page__description">ちょっと困ったときは、Helpを届けてみましょう。</p>
+                <Link className="btn btn--outline btn--sm my-page__post-link" to="/post/new">Helpを投稿する</Link>
+              </div>
+            )}
+          </div>
+        </section>
+        <section className="my-page__section" aria-labelledby="account-title">
+          <h2 id="account-title">アカウント</h2>
+          <button type="button" className="btn btn--outline btn--block" onClick={() => void handleLogout()} disabled={isLoggingOut}>
+            {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+          </button>
+          {logoutError && <p role="alert">{logoutError}</p>}
+        </section>
       </div>
 
       <BottomNav />
