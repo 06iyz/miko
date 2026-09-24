@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { doc, onSnapshot } from 'firebase/firestore'
 import TopBar from '../components/TopBar'
 import HelpTag from '../components/HelpTag'
@@ -48,6 +48,7 @@ function distanceBetween(from: Coordinates, to: Coordinates) {
 
 export default function HelpDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [liveHelp, setLiveHelp] = useState<LiveHelp | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -115,6 +116,7 @@ export default function HelpDetail() {
     setActionError('')
     try {
       await acceptHelpPost(liveHelp.id, user.uid)
+      navigate(`/help/${liveHelp.id}/chat`)
     } catch {
       setActionError('ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
     } finally {
@@ -199,6 +201,11 @@ export default function HelpDetail() {
         </div>
       </div>
       <div className="screen__footer screen__footer--stacked">
+        {(isAuthor || isAcceptedHelper) && liveHelp.acceptedHelperUid && (
+          <button type="button" className="btn btn--primary btn--block" onClick={() => navigate(`/help/${liveHelp.id}/chat`)}>
+            チャットを開く
+          </button>
+        )}
         {isAuthor ? <p className="detail-owner-note">あなたの投稿です。詳しい場所は、助けに向かう人が決まるまで表示されません。</p>
           : isAcceptedHelper ? <button type="button" className="btn btn--primary btn--block" onClick={() => privateLocation && window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')} disabled={!privateLocation}>ルートを開く</button>
             : hasAnotherHelper ? <button type="button" className="btn btn--outline btn--block" disabled>ほかの人が助けに向かっています</button>
