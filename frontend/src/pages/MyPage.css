@@ -1,0 +1,178 @@
+.my-page .page-header {
+  padding: 24px var(--gutter) 16px;
+}
+
+.my-page__content {
+  padding: 8px var(--gutter) 40px;
+}
+
+.my-page .profile-card {
+  margin: 0;
+  padding: 28px 20px 24px;
+  gap: 26px;
+  background: var(--bg);
+}
+
+.my-page .profile-card__identity {
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.my-page .profile-card__avatar {
+  width: 76px;
+  height: 76px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: none;
+  font-size: 28px;
+}
+
+.my-page .profile-card__name {
+  font-size: 19px;
+}
+
+.my-page .profile-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.my-page .profile-card__stats > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.my-page .profile-card__value {
+  color: var(--accent);
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-page__stat-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.my-page__stat-emoji--warm {
+  background: var(--warm-soft);
+}
+
+.my-page .profile-card__label {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.my-page__section {
+  margin-top: 30px;
+}
+
+.my-page__section h2 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.my-page__cards {
+  display: grid;
+  gap: 12px;
+}
+
+.my-page__card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.my-page__card--link:hover {
+  border-color: var(--line-strong);
+  background: var(--bg-muted);
+}
+
+.my-page__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.my-page__card-body {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.my-page__card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.my-page__description {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.my-page__meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.my-page__chevron {
+  width: 18px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.my-page__empty {
+  flex-direction: column;
+  gap: 8px;
+  padding: 26px 20px;
+  text-align: center;
+}
+
+.my-page__empty .my-page__description {
+  margin-top: 0;
+}
+
+.my-page__post-link {
+  margin-top: 8px;
+  background: var(--bg);
+  text-decoration: none;
+}
+
+.my-page a:focus-visible,
+.my-page button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (max-width: 359px) {
+  .my-page .profile-card,
+  .my-page__card {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}

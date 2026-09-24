@@ -14,6 +14,7 @@ import {
   QuestionIcon,
   SettingsIcon,
 } from '../components/icons'
+import './MyPage.css'
 
 const menuItems = [
   { label: '助けた履歴', Icon: ClockIcon },
@@ -128,15 +129,12 @@ export default function MyPage() {
   const ratingLabel = stats.ratingCount > 0 ? (stats.ratingSum / stats.ratingCount).toFixed(1) : '—'
 
   return (
-    <div className="screen screen--narrow">
-      <header className="page-header page-header--with-action">
+    <div className="screen screen--narrow my-page">
+      <header className="page-header">
         <h1>マイページ</h1>
-        <button type="button" className="icon-btn" aria-label="設定">
-          <SettingsIcon />
-        </button>
       </header>
 
-      <div className="screen__scroll">
+      <div className="screen__scroll my-page__content">
         <div className="profile-card profile-card--account">
           <div className="profile-card__identity">
             <div className="profile-card__avatar">
@@ -157,7 +155,7 @@ export default function MyPage() {
               <p className="profile-card__email">{user.email || 'メールアドレス未設定'}</p>
             </div>
           </div>
-            <div className="profile-card__stats">
+          <div className="profile-card__stats">
             <div>
               <p className="profile-card__value">{stats.helpedCount}</p>
               <p className="profile-card__label">助けた</p>
