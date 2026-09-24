@@ -160,16 +160,6 @@ p {
   color: #fff;
 }
 
-@media (min-width: 880px) {
-  .sidebar {
-    display: flex;
-  }
-
-  .bottom-nav {
-    display: none;
-  }
-}
-
 /* ---------- Bottom nav (mobile) ---------- */
 
 .bottom-nav {
@@ -194,6 +184,16 @@ p {
 
 .bottom-nav__item.is-active {
   color: var(--accent);
+}
+
+@media (min-width: 880px) {
+  .sidebar {
+    display: flex;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
 }
 
 /* ---------- Buttons ---------- */
