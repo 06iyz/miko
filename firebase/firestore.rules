@@ -35,6 +35,29 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['status', 'acceptedHelperUid', 'acceptedAt']);
 
+      // 投稿に担当者が決まると、その2人だけが会話を利用できる。
+      match /messages/{messageId} {
+        function isParticipant() {
+          let post = get(/databases/$(database)/documents/helpPosts/$(postId)).data;
+          return request.auth != null
+            && post.acceptedHelperUid is string
+            && (post.authorUid == request.auth.uid
+              || post.acceptedHelperUid == request.auth.uid);
+        }
+
+        allow read: if isParticipant();
+        allow create: if isParticipant()
+          && get(/databases/$(database)/documents/helpPosts/$(postId)).data.status == 'matched'
+          && request.resource.data.keys().hasOnly(['senderUid', 'text', 'createdAt'])
+          && request.resource.data.senderUid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.text.matches('[\\s\\S]*[^\\s][\\s\\S]*')
+          && request.resource.data.createdAt == request.time;
+        // 送信済みメッセージの編集・削除は許可しない。
+      }
+
       // 詳しい場所は、投稿者または引き受けた人だけが読める。
       match /private/{privateDocument} {
         allow read: if request.auth != null

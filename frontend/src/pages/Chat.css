@@ -1,0 +1,23 @@
+.chat-feedback {
+  padding: 8px var(--gutter);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.chat-feedback[role='alert'] {
+  color: #b42318;
+}
+
+.chat-bubble--text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-input input {
+  min-width: 0;
+}
+
+.chat-input button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
