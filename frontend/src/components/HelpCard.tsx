@@ -1,35 +1,23 @@
-import { useNavigate } from 'react-router-dom'
+import HelpCategoryIcon from './HelpCategoryIcon'
+import { Link } from 'react-router-dom'
 import type { HelpPost } from '../types'
 import HelpTag from './HelpTag'
-
-const categoryEmoji: Record<HelpPost['category'], string> = {
-  移動: '🚶',
-  案内: '🧭',
-  子育て: '🍼',
-  荷物: '🧳',
-  言葉: '💬',
-  その他: '❓',
-}
+import { ClockIcon, LocationIcon } from './icons'
 
 export default function HelpCard({ help }: { help: HelpPost }) {
-  const navigate = useNavigate()
-
+  const minutes = help.postedMinutesAgo
+  const elapsed = minutes < 1 ? 'たった今' : minutes < 60 ? `${minutes}分前` : minutes < 1440 ? `${Math.floor(minutes / 60)}時間前` : `${Math.floor(minutes / 1440)}日前`
   return (
-    <button
-      type="button"
-      className="help-card"
-      onClick={() => navigate(`/help/${help.id}`)}
-    >
-      <div className="help-card__thumb" aria-hidden="true">
-        {categoryEmoji[help.category]}
+    <Link className="help-card" to={`/help/${help.id}`}>
+      <div className="help-card__thumb">
+        <HelpCategoryIcon help={help} />
       </div>
       <div className="help-card__body">
-        <p className="help-card__title">{help.title}</p>
-        <p className="help-card__meta">
-          {help.distanceM > 0 ? `${help.distanceM}m先・` : '現在地付近・'}{help.postedMinutesAgo}分前
-        </p>
+        <span className="help-card__category">{help.category}</span>
+        <h3 className="help-card__title">{help.title}</h3>
+        <p className="help-card__meta"><span><LocationIcon width={13} height={13} />{help.distanceM > 0 ? `${help.distanceM}m先` : '距離未取得'}</span><span><ClockIcon width={13} height={13} />{elapsed}</span></p>
+        <HelpTag type={help.type} />
       </div>
-      <HelpTag type={help.type} />
-    </button>
+    </Link>
   )
 }
