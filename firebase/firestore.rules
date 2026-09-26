@@ -58,10 +58,13 @@ service cloud.firestore {
         // 送信済みメッセージの編集・削除は許可しない。
       }
 
-      // 詳しい場所は、投稿者または引き受けた人だけが読める。
+      // 場所ドキュメントはログイン済みユーザーが担当者決定前から読める。
+      // それ以外の private ドキュメントは従来どおり当事者に限定する。
       match /private/{privateDocument} {
         allow read: if request.auth != null
-          && (get(/databases/$(database)/documents/helpPosts/$(postId)).data.authorUid == request.auth.uid
+          && exists(/databases/$(database)/documents/helpPosts/$(postId))
+          && (privateDocument == 'location'
+            || get(/databases/$(database)/documents/helpPosts/$(postId)).data.authorUid == request.auth.uid
             || get(/databases/$(database)/documents/helpPosts/$(postId)).data.acceptedHelperUid == request.auth.uid);
 
         // 投稿を作るときに、投稿者が同時に場所情報を保存する。

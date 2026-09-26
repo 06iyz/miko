@@ -53,6 +53,8 @@ export default function HelpDetail() {
   const [liveHelp, setLiveHelp] = useState<LiveHelp | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [privateLocation, setPrivateLocation] = useState<PrivateLocation | null>(null)
+  const [isLocationLoading, setIsLocationLoading] = useState(true)
+  const [locationError, setLocationError] = useState('')
   const [helperPosition, setHelperPosition] = useState<Coordinates | null>(null)
   const [isGettingHelperPosition, setIsGettingHelperPosition] = useState(false)
   const [helperPositionError, setHelperPositionError] = useState('')
@@ -95,10 +97,20 @@ export default function HelpDetail() {
 
   useEffect(() => {
     setPrivateLocation(null)
-    if (!liveHelp || !user || (!isAuthor && !isAcceptedHelper)) return
+    setLocationError('')
+    setIsLocationLoading(true)
+    if (!id || !user?.uid) {
+      setIsLocationLoading(false)
+      return
+    }
 
-    return onSnapshot(doc(db, 'helpPosts', liveHelp.id, 'private', 'location'), (snapshot) => {
-      if (!snapshot.exists()) return
+    return onSnapshot(doc(db, 'helpPosts', id, 'private', 'location'), (snapshot) => {
+      setIsLocationLoading(false)
+      setLocationError('')
+      if (!snapshot.exists()) {
+        setPrivateLocation(null)
+        return
+      }
       const data = snapshot.data()
       const coordinates = data.approximateCoordinates
       setPrivateLocation({
@@ -107,8 +119,12 @@ export default function HelpDetail() {
           ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
           : null,
       })
-    }, () => setPrivateLocation(null))
-  }, [isAcceptedHelper, isAuthor, liveHelp, user])
+    }, () => {
+      setPrivateLocation(null)
+      setIsLocationLoading(false)
+      setLocationError('場所を読み込めませんでした。時間をおいて開き直してください。')
+    })
+  }, [id, user?.uid])
 
   const accept = async () => {
     if (!liveHelp || !user || isAuthor || isAccepting) return
@@ -170,7 +186,7 @@ export default function HelpDetail() {
     <div className="screen screen--narrow">
       <TopBar title="Helpの詳細" />
       <div className="screen__scroll">
-        {isAcceptedHelper && destination ? <div className="detail-thumb detail-thumb--map"><HelperRouteMap destination={destination} helperPosition={helperPosition} /></div> : <div className="detail-thumb" aria-hidden="true">📍</div>}
+        {destination ? <div className="detail-thumb detail-thumb--map"><HelperRouteMap destination={destination} helperPosition={helperPosition} /></div> : <div className="detail-thumb" aria-hidden="true">📍</div>}
         <div className="detail-body">
           <HelpTag type={liveHelp.type} />
           <p className="detail-time">{liveHelp.status === 'open' ? '助けを待っています' : liveHelp.status === 'matched' ? '助けに向かう人が決まりました' : '解決済み'}</p>
@@ -179,17 +195,20 @@ export default function HelpDetail() {
           <div className="detail-location">
             <LocationIcon />
             <div>
-              {privateLocation ? <><p>{privateLocation.location}</p><p className="detail-location__sub">あなたは助けに向かう担当です。地図で近くまで案内できます。</p></> : <><p>詳しい場所は非公開です</p><p className="detail-location__sub">「助けに行く」を選んだ人と投稿者だけに表示されます。</p></>}
+              {isLocationLoading ? <p>場所を読み込み中...</p>
+                : locationError ? <p role="alert">{locationError}</p>
+                  : privateLocation ? <><p>{privateLocation.location}</p><p className="detail-location__sub">投稿された場所を表示しています。ログイン済みのユーザーが確認できます。</p></>
+                    : <p>この投稿には場所が登録されていません。</p>}
             </div>
           </div>
           {privateLocation && <button type="button" className="btn btn--outline btn--block detail-route-button" onClick={() => window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')}>地図でルートを見る</button>}
-          {isAcceptedHelper && privateLocation && destination && (
+          {privateLocation && destination && (
             <section className="helper-route-map" aria-label="助けに向かうための地図">
               <div className="helper-route-map__heading">
-                <div><p>助けに向かう地図</p><small>{routeDistance === null ? '現在地を表示すると、2人の位置と距離を確認できます' : `目的地まで約${routeDistance >= 1000 ? `${(routeDistance / 1000).toFixed(1)}km` : `${routeDistance}m`}`}</small></div>
+                <div><p>投稿された場所</p><small>{routeDistance === null ? '現在地を表示すると、投稿された場所までの距離を確認できます' : `目的地まで直線で約${routeDistance >= 1000 ? `${(routeDistance / 1000).toFixed(1)}km` : `${routeDistance}m`}`}</small></div>
                 <span>徒歩</span>
               </div>
-              <p className="helper-route-map__message">上の地図には、あなたと助けを求めている人のピンが表示されます。</p>
+              <p className="helper-route-map__message">投稿された場所を地図で確認できます。「現在地を表示」で自分の位置も表示できます。</p>
               <div className="helper-route-map__actions">
                 <button type="button" className="btn btn--outline" onClick={requestHelperPosition} disabled={isGettingHelperPosition}>{isGettingHelperPosition ? '現在地を確認中...' : helperPosition ? '現在地を更新' : '現在地を表示'}</button>
                 <button type="button" className="btn btn--primary" onClick={() => window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')}>地図アプリで案内</button>
@@ -206,7 +225,7 @@ export default function HelpDetail() {
             チャットを開く
           </button>
         )}
-        {isAuthor ? <p className="detail-owner-note">あなたの投稿です。詳しい場所は、助けに向かう人が決まるまで表示されません。</p>
+        {isAuthor ? <p className="detail-owner-note">あなたの投稿です。場所はログイン済みのユーザーに公開されています。</p>
           : isAcceptedHelper ? <button type="button" className="btn btn--primary btn--block" onClick={() => privateLocation && window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')} disabled={!privateLocation}>ルートを開く</button>
             : hasAnotherHelper ? <button type="button" className="btn btn--outline btn--block" disabled>ほかの人が助けに向かっています</button>
               : liveHelp.status === 'closed' ? <button type="button" className="btn btn--outline btn--block" disabled>このHelpは解決済みです</button>
