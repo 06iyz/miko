@@ -10,7 +10,7 @@ export default function HelpCard({ help }: { help: HelpPost }) {
   return (
     <Link className="help-card" to={`/help/${help.id}`}>
       <div className="help-card__thumb">
-        <HelpCategoryIcon help={help} />
+        {help.imageUrl ? <img className="help-card__photo" src={help.imageUrl} alt="投稿された状況の写真" loading="lazy" /> : <HelpCategoryIcon help={help} />}
       </div>
       <div className="help-card__body">
         <span className="help-card__category">{help.category}</span>

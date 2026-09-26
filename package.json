@@ -12,10 +12,14 @@
     "dev:backend": "npm run dev --workspace=backend",
     "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
     "typecheck": "npm run build --workspace=frontend && npm run typecheck --workspace=backend",
-    "start": "npm run start --workspace=backend"
+    "start": "npm run start --workspace=backend",
+    "test:participation": "firebase emulators:exec --only firestore --project demo-nearu-participation --config firebase.test.json \"node --test --test-concurrency=1 tests/helpParticipation.test.mjs\""
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "firebase-admin": "^14.5.0",
+    "firebase-tools": "^15.31.0"
   },
   "engines": {
     "node": ">=24.13.0 <25",

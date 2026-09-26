@@ -8,6 +8,7 @@ import { LocationIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import { acceptHelpPost } from '../lib/helpPosts'
+import { HelpParticipationError } from '../lib/helpParticipation'
 import type { HelpCategory, HelpType } from '../types'
 
 type LiveHelp = {
@@ -19,6 +20,7 @@ type LiveHelp = {
   authorUid: string
   acceptedHelperUid: string | null
   status: 'open' | 'matched' | 'closed'
+  imageUrls: string[]
 }
 
 type PrivateLocation = {
@@ -60,6 +62,7 @@ export default function HelpDetail() {
   const [helperPositionError, setHelperPositionError] = useState('')
   const [isAccepting, setIsAccepting] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [activeHelpId, setActiveHelpId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) {
@@ -84,6 +87,7 @@ export default function HelpDetail() {
         authorUid: typeof data.authorUid === 'string' ? data.authorUid : '',
         acceptedHelperUid: typeof data.acceptedHelperUid === 'string' ? data.acceptedHelperUid : null,
         status: data.status === 'matched' ? 'matched' : data.status === 'closed' ? 'closed' : 'open',
+        imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls.filter((url): url is string => typeof url === 'string') : (typeof data.imageUrl === 'string' ? [data.imageUrl] : []),
       })
       setIsLoading(false)
     }, () => {
@@ -94,6 +98,19 @@ export default function HelpDetail() {
 
   const isAuthor = Boolean(liveHelp && user?.uid === liveHelp.authorUid)
   const isAcceptedHelper = Boolean(liveHelp && user?.uid === liveHelp.acceptedHelperUid)
+  const isHelpingAnotherPost = Boolean(activeHelpId && activeHelpId !== liveHelp?.id)
+
+  useEffect(() => {
+    if (!user) {
+      setActiveHelpId(null)
+      return
+    }
+
+    return onSnapshot(doc(db, 'activeHelps', user.uid), (snapshot) => {
+      const value = snapshot.data()?.helpId
+      setActiveHelpId(typeof value === 'string' ? value : null)
+    }, () => setActiveHelpId(null))
+  }, [user])
 
   useEffect(() => {
     setPrivateLocation(null)
@@ -127,14 +144,16 @@ export default function HelpDetail() {
   }, [id, user?.uid])
 
   const accept = async () => {
-    if (!liveHelp || !user || isAuthor || isAccepting) return
+    if (!liveHelp || !user || isAuthor || isAccepting || isHelpingAnotherPost) return
     setIsAccepting(true)
     setActionError('')
     try {
-      await acceptHelpPost(liveHelp.id, user.uid)
+      await acceptHelpPost(user, liveHelp.id)
       navigate(`/help/${liveHelp.id}/chat`)
-    } catch {
-      setActionError('ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
+    } catch (error) {
+      setActionError(error instanceof HelpParticipationError
+        ? error.message
+        : 'ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
     } finally {
       setIsAccepting(false)
     }
@@ -188,6 +207,7 @@ export default function HelpDetail() {
       <div className="screen__scroll">
         {destination ? <div className="detail-thumb detail-thumb--map"><HelperRouteMap destination={destination} helperPosition={helperPosition} /></div> : <div className="detail-thumb" aria-hidden="true">📍</div>}
         <div className="detail-body">
+          {liveHelp.imageUrls.length > 0 && <div className="detail-images" aria-label="撮影した写真">{liveHelp.imageUrls.map((url, index) => <figure key={url}><img src={url} alt={index === 0 ? 'まわりの様子を撮影した写真' : '自分を撮影した写真'} loading="lazy" /><figcaption>{index === 0 ? 'まわりの様子' : '自分の写真'}</figcaption></figure>)}</div>}
           <HelpTag type={liveHelp.type} />
           <p className="detail-time">{liveHelp.status === 'open' ? '助けを待っています' : liveHelp.status === 'matched' ? '助けに向かう人が決まりました' : '解決済み'}</p>
           <h2 className="detail-title">{liveHelp.title}</h2>
@@ -229,7 +249,8 @@ export default function HelpDetail() {
           : isAcceptedHelper ? <button type="button" className="btn btn--primary btn--block" onClick={() => privateLocation && window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')} disabled={!privateLocation}>ルートを開く</button>
             : hasAnotherHelper ? <button type="button" className="btn btn--outline btn--block" disabled>ほかの人が助けに向かっています</button>
               : liveHelp.status === 'closed' ? <button type="button" className="btn btn--outline btn--block" disabled>このHelpは解決済みです</button>
-                : <button type="button" className="btn btn--primary btn--block" onClick={() => void accept()} disabled={isAccepting}>{isAccepting ? '手続き中...' : '助けに行く'}</button>}
+                : isHelpingAnotherPost ? <button type="button" className="btn btn--outline btn--block" disabled>現在の助け合いを完了すると引き受けられます</button>
+                  : <button type="button" className="btn btn--primary btn--block" onClick={() => void accept()} disabled={isAccepting}>{isAccepting ? '手続き中...' : '助けに行く'}</button>}
       </div>
     </div>
   )

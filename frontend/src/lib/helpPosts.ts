@@ -1,7 +1,8 @@
-import { collection, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import type { HelpCategory, HelpType } from '../types'
 import { db } from './firebase'
+import { claimHelp } from './helpParticipation'
 
 type CreateHelpPostInput = {
   category: HelpCategory
@@ -14,6 +15,7 @@ type CreateHelpPostInput = {
     longitude: number
     accuracyMeters: number
   } | null
+  imageUrls?: string[]
 }
 
 function createTitle(description: string) {
@@ -46,6 +48,8 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
     authorPhotoUrl: user.photoURL ?? null,
+    imageUrls: input.imageUrls ?? [],
+    imageUrl: input.imageUrls?.[0] ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -62,10 +66,6 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
 }
 
 /** 開いている投稿を引き受ける。認可は Firestore ルールでも確認する。 */
-export async function acceptHelpPost(postId: string, helperUid: string) {
-  await updateDoc(doc(db, 'helpPosts', postId), {
-    status: 'matched',
-    acceptedHelperUid: helperUid,
-    acceptedAt: serverTimestamp(),
-  })
+export async function acceptHelpPost(user: User, postId: string) {
+  await claimHelp(db, user, postId)
 }

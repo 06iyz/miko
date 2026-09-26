@@ -11,13 +11,18 @@ export default function Resolve() {
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState('')
 
   const sendResolution = async () => {
     if (isSending) return
+    if (!user || !id) { setError('ログインと案件を確認してください。'); return }
     setIsSending(true)
+    setError('')
     try {
       if (user && id) await recordHelped(user.uid, id)
       navigate('/home')
+    } catch {
+      setError('完了処理に失敗しました。時間をおいてもう一度お試しください。')
     } finally {
       setIsSending(false)
     }
@@ -60,6 +65,7 @@ export default function Resolve() {
       </div>
 
       <div className="screen__footer screen__footer--stacked">
+        {error && <p role="alert">{error}</p>}
         <button type="button" className="btn btn--primary btn--block" onClick={() => void sendResolution()} disabled={isSending}>
           {isSending ? '送信中...' : '送信する'}
         </button>

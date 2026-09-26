@@ -5,6 +5,7 @@ import type { HelpCategory, HelpType } from '../types'
 import { LocationIcon, SearchIcon, SendIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { createHelpPost } from '../lib/helpPosts'
+import { uploadHelpPhoto } from '../lib/photoUpload'
 import './PostHelp.css'
 
 const categories: Array<{ value: HelpCategory; icon: string }> = [
@@ -44,6 +45,8 @@ export default function PostHelp() {
   } | null>(null)
   const [outsidePhotoPreview, setOutsidePhotoPreview] = useState<string | null>(null)
   const [insidePhotoPreview, setInsidePhotoPreview] = useState<string | null>(null)
+  const [outsidePhotoFile, setOutsidePhotoFile] = useState<File | null>(null)
+  const [insidePhotoFile, setInsidePhotoFile] = useState<File | null>(null)
   const [isPhotoLayoutSwapped, setIsPhotoLayoutSwapped] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment')
@@ -139,8 +142,10 @@ export default function PostHelp() {
       const wasOutsideCamera = capturedFacing === 'environment'
       if (wasOutsideCamera) {
         setOutsidePhotoPreview(preview)
+        setOutsidePhotoFile(photo)
       } else {
         setInsidePhotoPreview(preview)
+        setInsidePhotoFile(photo)
       }
       setCameraError('')
       cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
@@ -174,6 +179,8 @@ export default function PostHelp() {
     photoUrlsRef.current = []
     setOutsidePhotoPreview(null)
     setInsidePhotoPreview(null)
+    setOutsidePhotoFile(null)
+    setInsidePhotoFile(null)
     setIsPhotoLayoutSwapped(false)
     setCameraFacing('environment')
     setCameraError('')
@@ -201,11 +208,12 @@ export default function PostHelp() {
     setError('')
 
     try {
-      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
+      const uploadedPhotos = await Promise.all([outsidePhotoFile, insidePhotoFile].filter((file): file is File => Boolean(file)).map((file) => uploadHelpPhoto(user, file)))
+      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates, imageUrls: uploadedPhotos.map((photo) => photo.imageUrl) })
       navigate('/post/complete', { replace: true, state: { postId } })
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
-      setError('投稿できませんでした。時間をおいてもう一度お試しください。')
+      setError(submitError instanceof Error ? submitError.message : '投稿できませんでした。時間をおいてもう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }
@@ -311,11 +319,11 @@ export default function PostHelp() {
       <form className="post-page__body" onSubmit={step === 'photo' ? advanceFromPhoto : step === 'input' ? showConfirmation : publishPost}>
         <main className="post-page__main">
           <section className="post-page__intro">
-            <div className="post-page__intro-icon" aria-hidden="true">✎</div>
-            <div>
+            {/* <div className="post-page__intro-icon" aria-hidden="true">✎</div> */}
+            {/* <div>
               <h1>Helpを投稿する</h1>
               <p>困っていることを投稿して、地域のみんなに助けを求めましょう</p>
-            </div>
+            </div> */}
             <ol className="post-progress" aria-label="投稿の進行状況">
               <li className={step === 'photo' ? 'is-current' : 'is-done'}><span>1</span><small>写真を撮る</small></li>
               <li className={step === 'input' ? 'is-current' : step === 'confirm' ? 'is-done' : ''}><span>2</span><small>内容の入力</small></li>
@@ -325,23 +333,22 @@ export default function PostHelp() {
 
           {step === 'photo' ? (
             <section className="post-photo-step">
-              <div className="post-step__heading">
+              {/* <div className="post-step__heading">
                 <span className="post-step__number">1</span>
                 <div>
                   <h2>いまの状況を撮影してください</h2>
                   <p>助けに来る人が状況をイメージしやすくなります。</p>
                 </div>
-              </div>
+              </div> */}
               <div className={`post-photo-capture${hasRequiredPhotos ? ' has-photo' : ''}`}>
                 {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasRequiredPhotos ? <div className={`post-photo-capture__pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-photo-capture__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
                 {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) resetPhotos(); startPhotoCapture() }}>{hasRequiredPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
               </div>
               <div className="post-photo-actions">
-                {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>まわりを撮ったあと、自分の写真を自動で撮ります</span>}
+                {/* {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>まわりを撮ったあと、自分の写真を自動で撮ります</span>} */}
                 {(outsidePhotoPreview || insidePhotoPreview) && <button type="button" onClick={resetPhotos}>写真を削除</button>}
               </div>
               {cameraError && <p className="post-photo-error" role="alert">{cameraError}</p>}
-              <p className="post-photo-note">最初にまわりの様子を撮り、1.5秒後に自分の写真を撮ります。スマホに保存済みの写真は選べません。顔・家番号・車のナンバー・他の人が写らないようにしてください。写真は、この画面で内容を確認するためだけに使われ、投稿後には残りません。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">
