@@ -80,7 +80,7 @@ export default function MyPage() {
           title: typeof data.title === 'string' ? data.title : '投稿内容',
           category: typeof data.category === 'string' ? data.category : 'その他',
           type: data.type === 'teach' ? 'teach' : 'come',
-          location: typeof data.location === 'string' ? data.location : typeof data.locationHint === 'string' ? data.locationHint : '場所未設定',
+          location: typeof data.location === 'string' ? data.location : '詳しい場所は投稿詳細で確認できます',
           status: data.status === 'closed' ? 'closed' : 'open',
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
         }
