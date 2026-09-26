@@ -15,6 +15,7 @@ type CreateHelpPostInput = {
     longitude: number
     accuracyMeters: number
   } | null
+  imageUrls?: string[]
 }
 
 function createTitle(description: string) {
@@ -40,18 +41,20 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     description,
     category: input.category,
     type: input.type,
-    locationHint: '詳しい場所は、助ける人にのみ共有されます',
+    locationHint: '詳しい場所は投稿詳細で確認できます',
     requesterFeature: input.requesterFeature?.trim() || null,
     status: 'open',
     acceptedHelperUid: null,
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
     authorPhotoUrl: user.photoURL ?? null,
+    imageUrls: input.imageUrls ?? [],
+    imageUrl: input.imageUrls?.[0] ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
 
-  // 投稿者と、あとで「助けに行く」を選んだ人だけが読める情報。
+  // 保存先を維持し、ルールでログイン済みユーザーに場所の閲覧を許可する。
   batch.set(privateLocation, {
     location: input.location,
     approximateCoordinates: input.approximateCoordinates ?? null,
