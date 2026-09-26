@@ -33,6 +33,7 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
   const [messageError, setMessageError] = useState('')
   const [sendError, setSendError] = useState('')
   const [sending, setSending] = useState(false)
+  const [activeHelpId, setActiveHelpId] = useState<string | null>(null)
   const sendingRef = useRef(false)
   const threadRef = useRef<HTMLDivElement>(null)
 
@@ -46,7 +47,13 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
     setLoading(false)
   }), [helpId])
 
-  const allowed = Boolean(help && canReadChat(help, uid))
+  useEffect(() => onSnapshot(doc(db, 'userProfiles', uid), (snapshot) => {
+    const value = snapshot.data()?.activeHelpId
+    setActiveHelpId(typeof value === 'string' ? value : null)
+  }, () => setActiveHelpId(null)), [uid])
+
+  const isCurrentHelperChat = help?.helperUid === uid && activeHelpId === helpId
+  const allowed = Boolean(help && canReadChat(help, uid) && (help.authorUid === uid || isCurrentHelperChat))
 
   useEffect(() => {
     if (!allowed) return
@@ -101,8 +108,9 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
       <header className="chat-header">
         <button type="button" className="top-bar__icon-btn" onClick={() => navigate('/messages')} aria-label="メッセージ一覧へ戻る"><BackIcon /></button>
         <div className="chat-header__info">
-          <p className="chat-header__name">{allowed && help ? chatPartnerName(help, uid) : 'メッセージ'}</p>
-          <p className="chat-header__subtitle">{allowed ? help?.title : ''}</p>
+          <p className="chat-header__eyebrow">Helpについてのチャット</p>
+          <p className="chat-header__title">{allowed && help ? help.title : 'メッセージ'}</p>
+          {allowed && help && <p className="chat-header__partner">相手：{chatPartnerName(help, uid)}</p>}
         </div>
         {allowed && <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(`/help/${helpId}`)}>詳細・地図</button>}
         {allowed && help?.helperUid === uid && help.status === 'matched' && (
@@ -112,7 +120,7 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
       <div className="chat-thread" ref={threadRef}>
         {loading ? <p className="empty-state">読み込み中...</p>
           : loadError ? <p className="chat-feedback" role="alert">{loadError}</p>
-            : !allowed ? <p className="empty-state">この会話は投稿者と「助けに行く」を選んだ人だけが利用できます。</p>
+            : !allowed ? <p className="empty-state">この会話は、現在助けに向かっているHelpの担当者だけが利用できます。</p>
               : <>
                 {messageError && <p className="chat-feedback" role="alert">{messageError}</p>}
                 {messagesLoading ? <p className="empty-state">メッセージを読み込み中...</p>

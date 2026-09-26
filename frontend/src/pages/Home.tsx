@@ -7,7 +7,6 @@ import { ChevronRightIcon, LocationIcon, UserIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import type { HelpCategory, HelpPost } from '../types'
-import nearuLogo from '../assets/nearu-logo.png'
 import './Home.css'
 
 type LivePost = HelpPost & { createdAtMs: number }
@@ -56,12 +55,7 @@ export default function Home() {
     <div className="screen home-screen">
       <div className="home-content">
         <header className="home-header">
-          <h1 className="home-brand">
-            <img
-              src={nearuLogo}
-              alt="Nearu"
-            />
-          </h1>
+          <h1 className="home-brand" aria-label="Help5">H<span>e<svg viewBox="0 0 24 10" aria-hidden="true"><path d="M3 2 Q12 11 21 2" /></svg></span>lp5</h1>
           <Link className="home-profile" to="/mypage" aria-label="マイページを開く"><UserIcon /></Link>
         </header>
         <section className="home-intro"><p>あなたの「ちょっと」が、誰かの助けに。</p><h2>近くの、助けあい。</h2></section>

@@ -1,4 +1,4 @@
-import { collection, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, runTransaction, serverTimestamp, writeBatch } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import type { HelpCategory, HelpType } from '../types'
 import { db } from './firebase'
@@ -65,10 +65,52 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
 }
 
 /** 開いている投稿を引き受ける。認可は Firestore ルールでも確認する。 */
-export async function acceptHelpPost(postId: string, helperUid: string) {
-  await updateDoc(doc(db, 'helpPosts', postId), {
-    status: 'matched',
-    acceptedHelperUid: helperUid,
-    acceptedAt: serverTimestamp(),
+export async function acceptHelpPost(user: User, postId: string) {
+  const postRef = doc(db, 'helpPosts', postId)
+  const profileRef = doc(db, 'userProfiles', user.uid)
+
+  await runTransaction(db, async (transaction) => {
+    const [post, profile] = await Promise.all([
+      transaction.get(postRef),
+      transaction.get(profileRef),
+    ])
+
+    if (!post.exists() || post.data().status !== 'open' || post.data().acceptedHelperUid !== null) {
+      throw new Error('このHelpはすでに担当者が決まっています。')
+    }
+
+    const activeHelpId = profile.exists() && typeof profile.data().activeHelpId === 'string'
+      ? profile.data().activeHelpId
+      : null
+    if (activeHelpId) {
+      throw new Error('すでに別のHelpに助けに向かっています。')
+    }
+
+    transaction.update(postRef, {
+      status: 'matched',
+      acceptedHelperUid: user.uid,
+      acceptedHelperName: user.displayName ?? '名前未設定',
+      acceptedAt: serverTimestamp(),
+    })
+
+    // このドキュメントをロックとして共有することで、別端末から同時に引き受けても1件に限定する。
+    if (profile.exists()) {
+      transaction.update(profileRef, {
+        activeHelpId: postId,
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      transaction.set(profileRef, {
+        helpedCount: 0,
+        helpedByCount: 0,
+        ratingSum: 0,
+        ratingCount: 0,
+        completedHelpIds: [],
+        closedPostIds: [],
+        activeHelpId: postId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    }
   })
 }

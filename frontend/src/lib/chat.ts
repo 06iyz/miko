@@ -9,6 +9,7 @@ export type ChatHelp = {
   authorUid: string
   authorName: string
   helperUid: string | null
+  helperName: string | null
   status: string
   matchedAt: number
 }
@@ -20,6 +21,7 @@ export function readChatHelp(id: string, data: Record<string, unknown>): ChatHel
     authorUid: typeof data.authorUid === 'string' ? data.authorUid : '',
     authorName: typeof data.authorName === 'string' ? data.authorName : '投稿者',
     helperUid: typeof data.acceptedHelperUid === 'string' ? data.acceptedHelperUid : null,
+    helperName: typeof data.acceptedHelperName === 'string' ? data.acceptedHelperName : null,
     status: typeof data.status === 'string' ? data.status : '',
     matchedAt: data.acceptedAt instanceof Timestamp ? data.acceptedAt.toMillis() : 0,
   }
@@ -30,7 +32,7 @@ export function canReadChat(help: ChatHelp, uid: string) {
 }
 
 export function chatPartnerName(help: ChatHelp, uid: string) {
-  return help.authorUid === uid ? '助けに向かう人' : help.authorName
+  return help.authorUid === uid ? help.helperName ?? '助けに向かう人' : help.authorName
 }
 
 export async function sendChatMessage(helpId: string, senderUid: string, draft: string) {

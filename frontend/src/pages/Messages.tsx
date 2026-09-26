@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
-import { canReadChat, chatPartnerName, readChatHelp, type ChatHelp } from '../lib/chat'
+import { chatPartnerName, readChatHelp, type ChatHelp } from '../lib/chat'
+import './Messages.css'
 
 export default function Messages() {
   const { user } = useAuth()
@@ -14,53 +15,52 @@ export default function Messages() {
 
 function ConversationList({ uid }: { uid: string }) {
   const navigate = useNavigate()
-  const [authored, setAuthored] = useState<ChatHelp[]>([])
-  const [accepted, setAccepted] = useState<ChatHelp[]>([])
-  const [loaded, setLoaded] = useState({ author: false, helper: false })
-  const [errors, setErrors] = useState({ author: false, helper: false })
+  const [conversations, setConversations] = useState<ChatHelp[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
-    // 単一フィールドのクエリを2つ使い、投稿者・担当者双方の会話を取得する。
-    const unsubscribe = ([['author', 'authorUid'], ['helper', 'acceptedHelperUid']] as const).map(([role, field]) => (
-      onSnapshot(query(collection(db, 'helpPosts'), where(field, '==', uid)), (snapshot) => {
-        const helps = snapshot.docs.map((post) => readChatHelp(post.id, post.data())).filter((help) => canReadChat(help, uid))
-        if (role === 'author') setAuthored(helps)
-        else setAccepted(helps)
-        setLoaded((previous) => ({ ...previous, [role]: true }))
-        setErrors((previous) => ({ ...previous, [role]: false }))
-      }, () => {
-        if (role === 'author') setAuthored([])
-        else setAccepted([])
-        setLoaded((previous) => ({ ...previous, [role]: true }))
-        setErrors((previous) => ({ ...previous, [role]: true }))
-      })
-    ))
-    return () => unsubscribe.forEach((stop) => stop())
+    const unsubscribe = onSnapshot(
+      query(collection(db, 'helpPosts'), where('acceptedHelperUid', '==', uid)),
+      (snapshot) => {
+        const helps = snapshot.docs
+          .map((post) => readChatHelp(post.id, post.data()))
+          .filter((help) => help.status === 'matched' && help.helperUid === uid)
+          .sort((a, b) => b.matchedAt - a.matchedAt || a.id.localeCompare(b.id))
+        setConversations(helps)
+        setLoaded(true)
+        setFailed(false)
+      },
+      () => {
+        setConversations([])
+        setLoaded(true)
+        setFailed(true)
+      },
+    )
+    return unsubscribe
   }, [uid])
-
-  const loading = !loaded.author || !loaded.helper
-  const failed = errors.author || errors.helper
-  const conversations = [...new Map([...authored, ...accepted].map((help) => [help.id, help])).values()]
-    .sort((a, b) => b.matchedAt - a.matchedAt || a.id.localeCompare(b.id))
 
   return (
     <div className="screen screen--narrow">
-      <header className="page-header"><h1>メッセージ</h1></header>
-      <div className="screen__scroll">
+      <header className="page-header messages-header"><h1>メッセージ</h1><p>現在、あなたが助けに向かっているHelpの会話です</p></header>
+      <div className="screen__scroll messages-screen__scroll">
         {failed && <p className="empty-state" role="alert">会話の一覧を読み込めませんでした。時間をおいて開き直してください。</p>}
-        {loading ? <p className="empty-state">読み込み中...</p>
-          : !failed && conversations.length === 0 && <p className="empty-state">まだ会話はありません。「助けに行く」で担当者が決まると、ここに表示されます。</p>}
-        <div className="conversation-list">
+        {!loaded ? <p className="empty-state">読み込み中...</p>
+          : !failed && conversations.length === 0 && <p className="empty-state">現在、助けに向かっているHelpはありません。</p>}
+        <div className="conversation-list messages-list">
           {conversations.map((help) => {
             const partner = chatPartnerName(help, uid)
             return (
               <button key={help.id} type="button" className="conversation-item" onClick={() => navigate(`/help/${help.id}/chat`)}>
-                <div className="conversation-item__avatar" aria-hidden="true">{Array.from(partner)[0]}</div>
                 <div className="conversation-item__body">
-                  <p className="conversation-item__name">{partner}</p>
-                  <p className="conversation-item__preview">{help.title}</p>
+                  <div className="conversation-item__topline">
+                    <span className="conversation-item__kind">助けに行く投稿</span>
+                    <span className="conversation-item__status">助けに向かっています</span>
+                  </div>
+                  <p className="conversation-item__title">{help.title}</p>
+                  <p className="conversation-item__partner">相手：{partner}</p>
                 </div>
-                <span className="conversation-item__time">{help.status === 'closed' ? '解決済み' : 'チャット'}</span>
+                <span className="conversation-item__arrow" aria-hidden="true">›</span>
               </button>
             )
           })}
