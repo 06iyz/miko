@@ -1,0 +1,60 @@
+.map-page {
+  overflow-y: auto;
+}
+
+.map-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px var(--gutter);
+}
+
+.map-page__header h1 {
+  font-size: 20px;
+}
+
+.map-page__locate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-page__canvas {
+  position: relative;
+  flex: 1 0 280px;
+  min-height: 280px;
+  margin: 0 var(--gutter);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.map-page__leaflet {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-muted);
+}
+
+.map-page__info,
+.map-page__error {
+  padding: 12px var(--gutter);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.map-page__info p + p {
+  margin-top: 4px;
+}
+
+.map-page__error {
+  padding-top: 0;
+  color: #b42318;
+}
+
+.map-page .bottom-nav {
+  flex-shrink: 0;
+}
