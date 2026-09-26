@@ -14,7 +14,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'title', 'description', 'category', 'type', 'locationHint',
           'requesterFeature', 'status', 'acceptedHelperUid', 'authorUid',
-          'authorName', 'authorPhotoUrl', 'createdAt', 'updatedAt'
+          'authorName', 'authorPhotoUrl', 'imageUrl', 'imageUrls', 'createdAt', 'updatedAt'
         ]);
 
       // 投稿者は自分の投稿を編集・削除できる。

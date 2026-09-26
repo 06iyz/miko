@@ -14,6 +14,7 @@ type CreateHelpPostInput = {
     longitude: number
     accuracyMeters: number
   } | null
+  imageUrls?: string[]
 }
 
 function createTitle(description: string) {
@@ -46,6 +47,8 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     authorUid: user.uid,
     authorName: user.displayName ?? '名前未設定',
     authorPhotoUrl: user.photoURL ?? null,
+    imageUrls: input.imageUrls ?? [],
+    imageUrl: input.imageUrls?.[0] ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
