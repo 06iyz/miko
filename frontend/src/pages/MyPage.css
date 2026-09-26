@@ -18,7 +18,12 @@
 
 @media (min-width: 880px) {
   .my-page .bottom-nav {
-    position: static;
+    display: flex;
+    position: fixed;
+    left: 232px;
+    z-index: 20;
+    padding-right: max(16px, calc((100vw - 1272px) / 2));
+    padding-left: max(16px, calc((100vw - 1272px) / 2));
   }
 }
 
