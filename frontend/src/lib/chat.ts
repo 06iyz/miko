@@ -8,6 +8,7 @@ export type ChatHelp = {
   title: string
   authorUid: string
   authorName: string
+  authorPhotoUrl: string | null
   helperUid: string | null
   helperName: string | null
   status: string
@@ -20,6 +21,7 @@ export function readChatHelp(id: string, data: Record<string, unknown>): ChatHel
     title: typeof data.title === 'string' ? data.title : 'Help',
     authorUid: typeof data.authorUid === 'string' ? data.authorUid : '',
     authorName: typeof data.authorName === 'string' ? data.authorName : '投稿者',
+    authorPhotoUrl: typeof data.authorPhotoUrl === 'string' ? data.authorPhotoUrl : null,
     helperUid: typeof data.acceptedHelperUid === 'string' ? data.acceptedHelperUid : null,
     helperName: typeof data.acceptedHelperName === 'string' ? data.acceptedHelperName : null,
     status: typeof data.status === 'string' ? data.status : '',

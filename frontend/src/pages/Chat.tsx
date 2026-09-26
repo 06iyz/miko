@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BackIcon, SendIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
-import { canReadChat, chatPartnerName, MAX_MESSAGE_LENGTH, readChatHelp, sendChatMessage, type ChatHelp } from '../lib/chat'
+import { canReadChat, MAX_MESSAGE_LENGTH, readChatHelp, sendChatMessage, type ChatHelp } from '../lib/chat'
+import ChatSummary, { PartnerPhoto } from './ChatSummary'
 import './Chat.css'
 
 type Message = {
@@ -33,7 +34,6 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
   const [messageError, setMessageError] = useState('')
   const [sendError, setSendError] = useState('')
   const [sending, setSending] = useState(false)
-  const [activeHelpId, setActiveHelpId] = useState<string | null>(null)
   const sendingRef = useRef(false)
   const threadRef = useRef<HTMLDivElement>(null)
 
@@ -47,13 +47,7 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
     setLoading(false)
   }), [helpId])
 
-  useEffect(() => onSnapshot(doc(db, 'userProfiles', uid), (snapshot) => {
-    const value = snapshot.data()?.activeHelpId
-    setActiveHelpId(typeof value === 'string' ? value : null)
-  }, () => setActiveHelpId(null)), [uid])
-
-  const isCurrentHelperChat = help?.helperUid === uid && activeHelpId === helpId
-  const allowed = Boolean(help && canReadChat(help, uid) && (help.authorUid === uid || isCurrentHelperChat))
+  const allowed = Boolean(help && canReadChat(help, uid))
 
   useEffect(() => {
     if (!allowed) return
@@ -104,29 +98,28 @@ function ChatRoom({ helpId, uid }: { helpId: string; uid: string }) {
   }
 
   return (
-    <div className="screen screen--narrow">
+    <div className="screen screen--narrow chat-screen">
+      <button type="button" className="chat-back" onClick={() => navigate('/messages')}><BackIcon />メッセージ一覧に戻る</button>
       <header className="chat-header">
-        <button type="button" className="top-bar__icon-btn" onClick={() => navigate('/messages')} aria-label="メッセージ一覧へ戻る"><BackIcon /></button>
-        <div className="chat-header__info">
-          <p className="chat-header__eyebrow">Helpについてのチャット</p>
-          <p className="chat-header__title">{allowed && help ? help.title : 'メッセージ'}</p>
-          {allowed && help && <p className="chat-header__partner">相手：{chatPartnerName(help, uid)}</p>}
-        </div>
+        {allowed && help ? <ChatSummary key={help.id} help={help} uid={uid} /> : <h1>メッセージ</h1>}
+        <div className="chat-header__actions">
         {allowed && <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(`/help/${helpId}`)}>詳細・地図</button>}
         {allowed && help?.helperUid === uid && help.status === 'matched' && (
           <button type="button" className="btn btn--outline btn--sm" onClick={() => navigate(`/help/${helpId}/resolve`)}>解決する</button>
         )}
+        </div>
       </header>
       <div className="chat-thread" ref={threadRef}>
         {loading ? <p className="empty-state">読み込み中...</p>
           : loadError ? <p className="chat-feedback" role="alert">{loadError}</p>
-            : !allowed ? <p className="empty-state">この会話は、現在助けに向かっているHelpの担当者だけが利用できます。</p>
+            : !allowed ? <p className="empty-state">この会話は投稿者と担当者だけが利用できます。</p>
               : <>
                 {messageError && <p className="chat-feedback" role="alert">{messageError}</p>}
                 {messagesLoading ? <p className="empty-state">メッセージを読み込み中...</p>
                   : !messageError && messages.length === 0 && <p className="empty-state">まだメッセージはありません。待ち合わせの連絡を送りましょう。</p>}
                 {messages.map((message) => (
                   <div key={message.id} className={`chat-bubble-row chat-bubble-row--${message.senderUid === uid ? 'me' : 'other'}`}>
+                    {message.senderUid !== uid && help && <PartnerPhoto help={help} uid={uid} />}
                     <div className="chat-bubble chat-bubble--text">{message.text}</div>
                     <span className="chat-bubble-row__time">{message.pending ? '送信中...' : message.createdAt?.toDate().toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>

@@ -8,6 +8,7 @@ import { LocationIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import { acceptHelpPost } from '../lib/helpPosts'
+import { HelpParticipationError } from '../lib/helpParticipation'
 import type { HelpCategory, HelpType } from '../types'
 
 type LiveHelp = {
@@ -101,8 +102,8 @@ export default function HelpDetail() {
       return
     }
 
-    return onSnapshot(doc(db, 'userProfiles', user.uid), (snapshot) => {
-      const value = snapshot.data()?.activeHelpId
+    return onSnapshot(doc(db, 'activeHelps', user.uid), (snapshot) => {
+      const value = snapshot.data()?.helpId
       setActiveHelpId(typeof value === 'string' ? value : null)
     }, () => setActiveHelpId(null))
   }, [user])
@@ -132,7 +133,7 @@ export default function HelpDetail() {
       await acceptHelpPost(user, liveHelp.id)
       navigate(`/help/${liveHelp.id}/chat`)
     } catch (error) {
-      setActionError(error instanceof Error && error.message === 'すでに別のHelpに助けに向かっています。'
+      setActionError(error instanceof HelpParticipationError
         ? error.message
         : 'ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
     } finally {
@@ -226,7 +227,7 @@ export default function HelpDetail() {
           : isAcceptedHelper ? <button type="button" className="btn btn--primary btn--block" onClick={() => privateLocation && window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')} disabled={!privateLocation}>ルートを開く</button>
             : hasAnotherHelper ? <button type="button" className="btn btn--outline btn--block" disabled>ほかの人が助けに向かっています</button>
               : liveHelp.status === 'closed' ? <button type="button" className="btn btn--outline btn--block" disabled>このHelpは解決済みです</button>
-                : isHelpingAnotherPost ? <button type="button" className="btn btn--outline btn--block" disabled>別のHelpに助けに向かっています</button>
+                : isHelpingAnotherPost ? <button type="button" className="btn btn--outline btn--block" disabled>現在の助け合いを完了すると引き受けられます</button>
                   : <button type="button" className="btn btn--primary btn--block" onClick={() => void accept()} disabled={isAccepting}>{isAccepting ? '手続き中...' : '助けに行く'}</button>}
       </div>
     </div>

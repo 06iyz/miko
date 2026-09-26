@@ -5,3 +5,7 @@ dist/
 .env.*.local
 firebase-debug.log
 .firebase/
+
+.cache/
+firestore-debug.log
+ui-debug.log
