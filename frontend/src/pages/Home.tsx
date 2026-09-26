@@ -76,7 +76,12 @@ export default function Home() {
     <div className="screen home-screen">
       <div className="home-content">
         <header className="home-header">
-          <h1 className="home-brand">Nearu</h1>
+          <h1 className="home-brand">
+            <img
+              src="/images/nearu-logo.png"
+              alt="Nearu — ちょっと困ったを、ちょっと助ける。"
+            />
+          </h1>
           <Link className="home-profile" to="/mypage" aria-label="マイページを開く"><UserIcon /></Link>
         </header>
         <section className="home-intro"><p>あなたの「ちょっと」が、誰かの助けに。</p><h2>近くの、助けあい。</h2></section>

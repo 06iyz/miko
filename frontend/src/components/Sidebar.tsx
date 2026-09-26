@@ -12,7 +12,11 @@ const items = [
 export default function Sidebar() {
   return (
     <nav className="sidebar">
-      <p className="sidebar__logo">Nearu</p>
+      <img
+        className="sidebar__logo"
+        src="/images/nearu-logo.png"
+        alt="Nearu — ちょっと困ったを、ちょっと助ける。"
+      />
       <div className="sidebar__items">
         {items.map(({ to, label, Icon }) => (
           <NavLink

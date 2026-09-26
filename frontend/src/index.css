@@ -135,14 +135,10 @@ p {
 }
 
 .sidebar__logo {
-  padding: 0 10px;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  background: linear-gradient(100deg, #2493ed, #31c5e8 48%, #4dce83);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  display: block;
+  width: 168px;
+  height: auto;
+  margin: -45px auto -52px;
 }
 
 .sidebar__items {
