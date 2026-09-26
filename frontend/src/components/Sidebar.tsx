@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { ChatIcon, HomeIcon, MapIcon, PlusCircleIcon, UserIcon } from './icons'
+import nearuLogo from '../assets/nearu-logo.png'
 
 const items = [
   { to: '/home', label: 'ホーム', Icon: HomeIcon },
@@ -14,7 +15,7 @@ export default function Sidebar() {
     <nav className="sidebar">
       <img
         className="sidebar__logo"
-        src="/images/nearu-logo.png"
+        src={nearuLogo}
         alt="Nearu"
       />
       <div className="sidebar__items">
