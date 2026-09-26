@@ -60,8 +60,9 @@ export default function PostHelp() {
   const cameraTimerRef = useRef<number | null>(null)
 
   const canSubmit = description.trim().length > 0 && location.trim().length > 0
-  const hasRequiredPhotos = Boolean(outsidePhotoPreview && insidePhotoPreview)
-  const isPrimaryDisabled = !user || isSubmitting || (step === 'photo' ? !hasRequiredPhotos : !canSubmit)
+  const hasCapturedPhotos = Boolean(outsidePhotoPreview && insidePhotoPreview)
+  const requiresPhotos = type === 'come'
+  const isPrimaryDisabled = !user || isSubmitting || (step !== 'photo' && !canSubmit)
   const displayName = user?.displayName || 'ゲスト'
 
   useEffect(() => () => {
@@ -181,7 +182,6 @@ export default function PostHelp() {
 
   const advanceFromPhoto = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!hasRequiredPhotos) return
     setError('')
     setStep('input')
   }
@@ -189,6 +189,11 @@ export default function PostHelp() {
   const showConfirmation = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit) return
+    if (requiresPhotos && !hasCapturedPhotos) {
+      setError('現地でのサポートを希望する場合は、状況写真と自分の写真を撮影してください。')
+      setStep('photo')
+      return
+    }
     setError('')
     setStep('confirm')
   }
@@ -196,6 +201,11 @@ export default function PostHelp() {
   const publishPost = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit || !user || isSubmitting) return
+    if (requiresPhotos && !hasCapturedPhotos) {
+      setError('現地でのサポートを希望する場合は、状況写真と自分の写真を撮影してください。')
+      setStep('photo')
+      return
+    }
 
     setIsSubmitting(true)
     setError('')
@@ -332,9 +342,9 @@ export default function PostHelp() {
                   <p>助けに来る人が状況をイメージしやすくなります。</p>
                 </div>
               </div>
-              <div className={`post-photo-capture${hasRequiredPhotos ? ' has-photo' : ''}`}>
-                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasRequiredPhotos ? <div className={`post-photo-capture__pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-photo-capture__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
-                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasRequiredPhotos) resetPhotos(); startPhotoCapture() }}>{hasRequiredPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
+              <div className={`post-photo-capture${hasCapturedPhotos ? ' has-photo' : ''}`}>
+                {isCameraOpen ? <video ref={cameraVideoRef} className="post-photo-capture__video" autoPlay muted playsInline onCanPlay={captureInnerPhotoWhenReady} aria-label="撮影する画面" /> : hasCapturedPhotos ? <div className={`post-photo-capture__pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-photo-capture__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-photo-capture__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div> : <div className="post-photo-capture__placeholder"><span aria-hidden="true">▣</span><strong>{isInnerPhotoAutomatic ? '自分の写真を撮ります…' : '現在の状況を写真で伝えましょう'}</strong><small>{isInnerPhotoAutomatic ? '画面が切り替わると、自動で撮影します' : 'スマホに保存済みの写真は選べません'}</small></div>}
+                {isCameraOpen && cameraFacing === 'environment' ? <button type="button" className="post-photo-capture__camera" onClick={() => capturePhoto('environment')}>● まわりを撮る</button> : isCameraOpen ? <span className="post-photo-capture__automatic" role="status">自分の写真を撮っています…</span> : !isInnerPhotoAutomatic && <button type="button" className="post-photo-capture__camera" onClick={() => { if (hasCapturedPhotos) resetPhotos(); startPhotoCapture() }}>{hasCapturedPhotos ? '最初から撮り直す' : '撮影をはじめる'}</button>}
               </div>
               <div className="post-photo-actions">
                 {isCameraOpen || isInnerPhotoAutomatic ? <button type="button" onClick={stopCamera}>撮影を中止する</button> : <span>まわりを撮ったあと、自分の写真を自動で撮ります</span>}
@@ -342,6 +352,7 @@ export default function PostHelp() {
               </div>
               {cameraError && <p className="post-photo-error" role="alert">{cameraError}</p>}
               <p className="post-photo-note">最初にまわりの様子を撮り、1.5秒後に自分の写真を撮ります。スマホに保存済みの写真は選べません。顔・家番号・車のナンバー・他の人が写らないようにしてください。写真は、この画面で内容を確認するためだけに使われ、投稿後には残りません。</p>
+              <p className="post-photo-note">「教えてほしい」を選ぶ投稿では、写真なしで内容入力へ進めます。現地で助けてもらう投稿では、投稿前に2枚の写真が必要です。</p>
             </section>
           ) : step === 'input' ? <>
           <section className="post-step">
@@ -454,7 +465,7 @@ export default function PostHelp() {
                 </div>
               </div>
               <dl className="post-confirmation__details">
-                {hasRequiredPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className={`post-confirmation__photo-pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-confirmation__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div></dd></div>}
+                {hasCapturedPhotos && <div className="post-confirmation__photo"><dt>撮影した写真</dt><dd><div className={`post-confirmation__photo-pair${isPhotoLayoutSwapped ? ' is-swapped' : ''}`}><figure className="post-confirmation__outside"><img src={outsidePhotoPreview ?? ''} alt="まわりの様子を撮影した写真" /><figcaption>まわりの様子</figcaption></figure><button type="button" className="post-confirmation__inside" onClick={() => setIsPhotoLayoutSwapped((value) => !value)} aria-label="写真の大きさを入れ替える"><img src={insidePhotoPreview ?? ''} alt="自分を撮影した写真" /><span>あなたの写真</span></button></div></dd></div>}
                 <div><dt>困りごとの種類</dt><dd>{category}</dd></div>
                 <div><dt>お願いしたいこと</dt><dd>{type === 'come' ? '来てほしい（現地でのサポート）' : '教えてほしい（チャットでの回答）'}</dd></div>
                 <div><dt>困っていること</dt><dd className="post-confirmation__description">{description}</dd></div>
@@ -503,7 +514,7 @@ export default function PostHelp() {
           </button>
           <button type="submit" className="post-submit" disabled={isPrimaryDisabled}>
             <SendIcon width={20} height={20} />
-            {step === 'photo' ? '内容入力へ進む' : step === 'input' ? '内容を確認する' : isSubmitting ? '投稿中...' : 'Helpを投稿する'}
+            {step === 'photo' ? hasCapturedPhotos ? '内容入力へ進む' : '写真なしで内容入力へ進む' : step === 'input' ? '内容を確認する' : isSubmitting ? '投稿中...' : 'Helpを投稿する'}
           </button>
         </footer>
       </form>
