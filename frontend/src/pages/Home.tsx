@@ -7,6 +7,7 @@ import { ChevronRightIcon, LocationIcon, UserIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
 import type { HelpCategory, HelpPost } from '../types'
+import nearuLogo from '../assets/nearu-logo.png'
 import './Home.css'
 
 const tabs = ['近くのヘルプ', 'みんなの投稿', 'フォローする'] as const
@@ -78,7 +79,7 @@ export default function Home() {
         <header className="home-header">
           <h1 className="home-brand">
             <img
-              src="/images/nearu-logo.png"
+              src={nearuLogo}
               alt="Nearu"
             />
           </h1>

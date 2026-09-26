@@ -131,14 +131,14 @@ p {
   border-right: 1px solid var(--line);
   padding: 24px 16px;
   flex-direction: column;
-  gap: 28px;
+  gap: 16px;
 }
 
 .sidebar__logo {
   display: block;
-  width: 148px;
+  width: 132px;
   height: auto;
-  margin: -26px auto -36px;
+  margin: 0 auto 4px;
 }
 
 .sidebar__items {

@@ -6,6 +6,7 @@ import {
   signInWithRedirect,
 } from 'firebase/auth'
 import { auth, authPersistenceReady } from '../lib/firebase'
+import nearuLogo from '../assets/nearu-logo.png'
 import './Login.css'
 
 function isMobileBrowser() {
@@ -66,7 +67,7 @@ export default function Login() {
         <img
           className="splash__logo-image"
           id="welcome-title"
-          src="/images/nearu-logo.png"
+          src={nearuLogo}
           alt="Nearu"
         />
         <p className="splash__tagline">
