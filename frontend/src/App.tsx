@@ -1,10 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
-import Home from './pages/Home'
 import MapView from './pages/MapView'
-import PostHelp from './pages/PostHelp'
-import PostComplete from './pages/PostComplete'
-import HelpDetail from './pages/HelpDetail'
 import Messages from './pages/Messages'
 import Chat from './pages/Chat'
 import Resolve from './pages/Resolve'
@@ -36,13 +32,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<Navigate to="/map" replace />} />
         <Route element={<AppLayout />}>
-          <Route path="/home" element={<Home />} />
           <Route path="/map" element={<MapView />} />
-          <Route path="/post/new" element={<PostHelp />} />
-          <Route path="/post/complete" element={<PostComplete />} />
-          <Route path="/help/:id" element={<HelpDetail />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/help/:id/chat" element={<Chat />} />
           <Route path="/help/:id/resolve" element={<Resolve />} />

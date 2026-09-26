@@ -1,10 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { ChatIcon, HomeIcon, MapIcon, PlusCircleIcon, UserIcon } from './icons'
+import { ChatIcon, MapIcon, UserIcon } from './icons'
 
 const items = [
-  { to: '/home', label: 'ホーム', Icon: HomeIcon },
   { to: '/map', label: '地図', Icon: MapIcon },
-  { to: '/post/new', label: '投稿する', Icon: PlusCircleIcon },
   { to: '/messages', label: 'メッセージ', Icon: ChatIcon },
   { to: '/mypage', label: 'マイページ', Icon: UserIcon },
 ]

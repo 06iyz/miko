@@ -20,7 +20,7 @@ export default function Resolve() {
     setError('')
     try {
       if (user && id) await recordHelped(user.uid, id)
-      navigate('/home')
+      navigate('/map')
     } catch {
       setError('完了処理に失敗しました。時間をおいてもう一度お試しください。')
     } finally {
@@ -69,7 +69,7 @@ export default function Resolve() {
         <button type="button" className="btn btn--primary btn--block" onClick={() => void sendResolution()} disabled={isSending}>
           {isSending ? '送信中...' : '送信する'}
         </button>
-        <button type="button" className="btn btn--text" onClick={() => navigate('/home')}>あとで</button>
+        <button type="button" className="btn btn--text" onClick={() => navigate('/map')}>あとで</button>
       </div>
     </div>
   )
