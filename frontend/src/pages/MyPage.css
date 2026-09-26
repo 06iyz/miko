@@ -3,7 +3,28 @@
 }
 
 .my-page__content {
-  padding: 8px var(--gutter) 40px;
+  padding: 8px var(--gutter) calc(92px + env(safe-area-inset-bottom, 0px));
+}
+
+/* スマホでは常に画面下にナビを出し、ブラウザの「戻る」に頼らず移動できるようにする。 */
+.my-page .bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  box-shadow: 0 -4px 20px #163d2f12;
+}
+
+@media (min-width: 880px) {
+  .my-page .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 232px;
+    z-index: 20;
+    padding-right: max(16px, calc((100vw - 1272px) / 2));
+    padding-left: max(16px, calc((100vw - 1272px) / 2));
+  }
 }
 
 .my-page .profile-card {

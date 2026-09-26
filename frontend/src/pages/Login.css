@@ -55,36 +55,11 @@
   padding: 113px 16px 0;
 }
 
-.welcome .splash__logo {
-  white-space: nowrap;
-  margin-bottom: 24px;
-  color: var(--accent);
-  font-family: 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
-  font-size: 66px;
-  font-weight: 750;
-  line-height: 1.1;
-  letter-spacing: -3px;
-}
-
-.welcome__logo-e {
-  position: relative;
-  display: inline-block;
-}
-
-.welcome__logo-smile {
-  position: absolute;
-  /* Account for half of the logo's -3px letter spacing. */
-  left: calc(50% + 1.5px);
-  transform: translateX(-50%);
-  bottom: -.035em;
-  width: .48em;
-  height: .18em;
-  overflow: visible;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 3;
-  stroke-linecap: round;
-  pointer-events: none;
+.welcome .splash__logo-image {
+  display: block;
+  width: min(100%, 240px);
+  height: auto;
+  margin: -28px auto -30px;
 }
 
 .welcome .splash__tagline {
