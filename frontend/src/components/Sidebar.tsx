@@ -12,7 +12,7 @@ const items = [
 export default function Sidebar() {
   return (
     <nav className="sidebar">
-      <p className="sidebar__logo">Help5</p>
+      <p className="sidebar__logo">Nearu</p>
       <div className="sidebar__items">
         {items.map(({ to, label, Icon }) => (
           <NavLink

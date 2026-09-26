@@ -63,9 +63,12 @@ export default function Login() {
       <div className="welcome__photo" aria-hidden="true" />
       <div className="welcome__island" aria-hidden="true" />
       <div className="splash__content">
-        <h1 className="splash__logo" id="welcome-title" aria-label="Help5">
-          H<span className="welcome__logo-e">e<svg className="welcome__logo-smile" viewBox="0 0 32 12" aria-hidden="true" focusable="false"><path d="M3 3 Q16 14 29 3" /></svg></span>lp5
-        </h1>
+        <img
+          className="splash__logo-image"
+          id="welcome-title"
+          src="/images/nearu-logo.png"
+          alt="Nearu — ちょっと困ったを、ちょっと助ける。"
+        />
         <p className="splash__tagline">
           <span>ちょっと困ったを</span>
           <span>ちょっと助ける</span>
