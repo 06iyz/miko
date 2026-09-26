@@ -33,7 +33,10 @@ service cloud.firestore {
         && request.resource.data.status == 'matched'
         && request.resource.data.acceptedHelperUid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['status', 'acceptedHelperUid', 'acceptedAt']);
+          .hasOnly(['status', 'acceptedHelperUid', 'acceptedHelperName', 'acceptedAt'])
+        && request.resource.data.acceptedHelperName is string
+        && request.resource.data.acceptedHelperName.size() > 0
+        && request.resource.data.acceptedHelperName.size() <= 100;
 
       // 投稿に担当者が決まると、その2人だけが会話を利用できる。
       match /messages/{messageId} {

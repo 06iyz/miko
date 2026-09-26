@@ -78,9 +78,11 @@ export async function recordHelped(userId: string, helpId: string) {
     const completedHelpIds = stringArray(profile.data().completedHelpIds)
     if (completedHelpIds.includes(helpId)) return
 
+    const activeHelpId = typeof profile.data().activeHelpId === 'string' ? profile.data().activeHelpId : null
     transaction.update(profileRef, {
       helpedCount: increment(1),
       completedHelpIds: [...completedHelpIds, helpId],
+      ...(activeHelpId === helpId ? { activeHelpId: null } : {}),
       updatedAt: serverTimestamp(),
     })
   })

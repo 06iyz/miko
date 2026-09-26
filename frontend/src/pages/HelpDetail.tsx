@@ -58,6 +58,7 @@ export default function HelpDetail() {
   const [helperPositionError, setHelperPositionError] = useState('')
   const [isAccepting, setIsAccepting] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [activeHelpId, setActiveHelpId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) {
@@ -92,6 +93,19 @@ export default function HelpDetail() {
 
   const isAuthor = Boolean(liveHelp && user?.uid === liveHelp.authorUid)
   const isAcceptedHelper = Boolean(liveHelp && user?.uid === liveHelp.acceptedHelperUid)
+  const isHelpingAnotherPost = Boolean(activeHelpId && activeHelpId !== liveHelp?.id)
+
+  useEffect(() => {
+    if (!user) {
+      setActiveHelpId(null)
+      return
+    }
+
+    return onSnapshot(doc(db, 'userProfiles', user.uid), (snapshot) => {
+      const value = snapshot.data()?.activeHelpId
+      setActiveHelpId(typeof value === 'string' ? value : null)
+    }, () => setActiveHelpId(null))
+  }, [user])
 
   useEffect(() => {
     setPrivateLocation(null)
@@ -111,14 +125,16 @@ export default function HelpDetail() {
   }, [isAcceptedHelper, isAuthor, liveHelp, user])
 
   const accept = async () => {
-    if (!liveHelp || !user || isAuthor || isAccepting) return
+    if (!liveHelp || !user || isAuthor || isAccepting || isHelpingAnotherPost) return
     setIsAccepting(true)
     setActionError('')
     try {
-      await acceptHelpPost(liveHelp.id, user.uid)
+      await acceptHelpPost(user, liveHelp.id)
       navigate(`/help/${liveHelp.id}/chat`)
-    } catch {
-      setActionError('ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
+    } catch (error) {
+      setActionError(error instanceof Error && error.message === 'すでに別のHelpに助けに向かっています。'
+        ? error.message
+        : 'ほかの人が先に助けに向かうことになったか、手続きを完了できませんでした。画面を更新して確認してください。')
     } finally {
       setIsAccepting(false)
     }
@@ -210,7 +226,8 @@ export default function HelpDetail() {
           : isAcceptedHelper ? <button type="button" className="btn btn--primary btn--block" onClick={() => privateLocation && window.open(getDirectionsUrl(privateLocation), '_blank', 'noopener,noreferrer')} disabled={!privateLocation}>ルートを開く</button>
             : hasAnotherHelper ? <button type="button" className="btn btn--outline btn--block" disabled>ほかの人が助けに向かっています</button>
               : liveHelp.status === 'closed' ? <button type="button" className="btn btn--outline btn--block" disabled>このHelpは解決済みです</button>
-                : <button type="button" className="btn btn--primary btn--block" onClick={() => void accept()} disabled={isAccepting}>{isAccepting ? '手続き中...' : '助けに行く'}</button>}
+                : isHelpingAnotherPost ? <button type="button" className="btn btn--outline btn--block" disabled>別のHelpに助けに向かっています</button>
+                  : <button type="button" className="btn btn--primary btn--block" onClick={() => void accept()} disabled={isAccepting}>{isAccepting ? '手続き中...' : '助けに行く'}</button>}
       </div>
     </div>
   )
