@@ -18,9 +18,13 @@
     "npm": ">=11.6.2 <12"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.34.0",
+    "@types/multer": "^2.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "firebase-admin": "^14.5.0",
+    "multer": "^2.4.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

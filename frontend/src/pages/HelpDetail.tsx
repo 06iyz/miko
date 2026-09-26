@@ -19,6 +19,7 @@ type LiveHelp = {
   authorUid: string
   acceptedHelperUid: string | null
   status: 'open' | 'matched' | 'closed'
+  imageUrls: string[]
 }
 
 type PrivateLocation = {
@@ -84,6 +85,7 @@ export default function HelpDetail() {
         authorUid: typeof data.authorUid === 'string' ? data.authorUid : '',
         acceptedHelperUid: typeof data.acceptedHelperUid === 'string' ? data.acceptedHelperUid : null,
         status: data.status === 'matched' ? 'matched' : data.status === 'closed' ? 'closed' : 'open',
+        imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls.filter((url): url is string => typeof url === 'string') : (typeof data.imageUrl === 'string' ? [data.imageUrl] : []),
       })
       setIsLoading(false)
     }, () => {
@@ -188,6 +190,7 @@ export default function HelpDetail() {
       <div className="screen__scroll">
         {destination ? <div className="detail-thumb detail-thumb--map"><HelperRouteMap destination={destination} helperPosition={helperPosition} /></div> : <div className="detail-thumb" aria-hidden="true">📍</div>}
         <div className="detail-body">
+          {liveHelp.imageUrls.length > 0 && <div className="detail-images" aria-label="撮影した写真">{liveHelp.imageUrls.map((url, index) => <figure key={url}><img src={url} alt={index === 0 ? 'まわりの様子を撮影した写真' : '自分を撮影した写真'} loading="lazy" /><figcaption>{index === 0 ? 'まわりの様子' : '自分の写真'}</figcaption></figure>)}</div>}
           <HelpTag type={liveHelp.type} />
           <p className="detail-time">{liveHelp.status === 'open' ? '助けを待っています' : liveHelp.status === 'matched' ? '助けに向かう人が決まりました' : '解決済み'}</p>
           <h2 className="detail-title">{liveHelp.title}</h2>

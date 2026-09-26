@@ -5,6 +5,7 @@ import type { HelpCategory, HelpType } from '../types'
 import { LocationIcon, SearchIcon, SendIcon } from '../components/icons'
 import { useAuth } from '../contexts/AuthContext'
 import { createHelpPost } from '../lib/helpPosts'
+import { uploadHelpPhoto } from '../lib/photoUpload'
 import './PostHelp.css'
 
 const categories: Array<{ value: HelpCategory; icon: string }> = [
@@ -44,6 +45,8 @@ export default function PostHelp() {
   } | null>(null)
   const [outsidePhotoPreview, setOutsidePhotoPreview] = useState<string | null>(null)
   const [insidePhotoPreview, setInsidePhotoPreview] = useState<string | null>(null)
+  const [outsidePhotoFile, setOutsidePhotoFile] = useState<File | null>(null)
+  const [insidePhotoFile, setInsidePhotoFile] = useState<File | null>(null)
   const [isPhotoLayoutSwapped, setIsPhotoLayoutSwapped] = useState(false)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment')
@@ -139,8 +142,10 @@ export default function PostHelp() {
       const wasOutsideCamera = capturedFacing === 'environment'
       if (wasOutsideCamera) {
         setOutsidePhotoPreview(preview)
+        setOutsidePhotoFile(photo)
       } else {
         setInsidePhotoPreview(preview)
+        setInsidePhotoFile(photo)
       }
       setCameraError('')
       cameraStreamRef.current?.getTracks().forEach((track) => track.stop())
@@ -174,6 +179,8 @@ export default function PostHelp() {
     photoUrlsRef.current = []
     setOutsidePhotoPreview(null)
     setInsidePhotoPreview(null)
+    setOutsidePhotoFile(null)
+    setInsidePhotoFile(null)
     setIsPhotoLayoutSwapped(false)
     setCameraFacing('environment')
     setCameraError('')
@@ -201,11 +208,12 @@ export default function PostHelp() {
     setError('')
 
     try {
-      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates })
+      const uploadedPhotos = await Promise.all([outsidePhotoFile, insidePhotoFile].filter((file): file is File => Boolean(file)).map((file) => uploadHelpPhoto(user, file)))
+      const postId = await createHelpPost(user, { category, description, type, location, requesterFeature, approximateCoordinates, imageUrls: uploadedPhotos.map((photo) => photo.imageUrl) })
       navigate('/post/complete', { replace: true, state: { postId } })
     } catch (submitError) {
       console.error('Failed to create help post', submitError)
-      setError('投稿できませんでした。時間をおいてもう一度お試しください。')
+      setError(submitError instanceof Error ? submitError.message : '投稿できませんでした。時間をおいてもう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }

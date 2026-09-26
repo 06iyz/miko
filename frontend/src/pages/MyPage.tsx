@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { collection, doc, onSnapshot, query, Timestamp, where } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext'
@@ -32,6 +33,7 @@ type HistoryPost = {
   location: string
   status: 'open' | 'closed'
   createdAt: Timestamp | null
+  imageUrls: string[]
 }
 
 function formatPostedAt(createdAt: Timestamp | null) {
@@ -41,6 +43,7 @@ function formatPostedAt(createdAt: Timestamp | null) {
 
 export default function MyPage() {
   const { user, loading } = useAuth()
+  const navigate = useNavigate()
   const [failedPhotoURL, setFailedPhotoURL] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'history' | 'account'>('history')
   const [history, setHistory] = useState<HistoryPost[]>([])
@@ -83,6 +86,7 @@ export default function MyPage() {
           location: typeof data.location === 'string' ? data.location : '詳しい場所は投稿詳細で確認できます',
           status: data.status === 'closed' ? 'closed' : 'open',
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
+          imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls.filter((url): url is string => typeof url === 'string') : (typeof data.imageUrl === 'string' ? [data.imageUrl] : []),
         }
       })
       nextHistory.sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0))
@@ -209,9 +213,11 @@ export default function MyPage() {
                 {history.map((post) => (
                   <article key={post.id} className="post-history__item">
                     <div className="post-history__item-top"><span className="post-history__category">{post.category}</span><span className={`post-history__status post-history__status--${post.status}`}>{post.status === 'open' ? '募集中' : '解決済み'}</span></div>
+                    {post.imageUrls.length > 0 && <img src={post.imageUrls[0]} alt="投稿した状況" className="post-history__image" />}
                     <h3>{post.title}</h3>
                     <p className="post-history__meta">{post.type === 'come' ? '来てほしい' : '教えてほしい'} ・ {post.location}</p>
                     <time>{formatPostedAt(post.createdAt)}</time>
+                    <button type="button" className="post-history__view" onClick={() => navigate(`/help/${post.id}`)}>写真・投稿詳細を見る</button>
                     {post.status === 'open' && <button type="button" className="post-history__close" onClick={() => void closePost(post.id)} disabled={closingPostId === post.id}>{closingPostId === post.id ? '変更中...' : '解決済みにする'}</button>}
                   </article>
                 ))}
