@@ -39,7 +39,7 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     description,
     category: input.category,
     type: input.type,
-    locationHint: '詳しい場所は、助ける人にのみ共有されます',
+    locationHint: '詳しい場所は投稿詳細で確認できます',
     requesterFeature: input.requesterFeature?.trim() || null,
     status: 'open',
     acceptedHelperUid: null,
@@ -50,7 +50,7 @@ export async function createHelpPost(user: User, input: CreateHelpPostInput) {
     updatedAt: serverTimestamp(),
   })
 
-  // 投稿者と、あとで「助けに行く」を選んだ人だけが読める情報。
+  // 保存先を維持し、ルールでログイン済みユーザーに場所の閲覧を許可する。
   batch.set(privateLocation, {
     location: input.location,
     approximateCoordinates: input.approximateCoordinates ?? null,

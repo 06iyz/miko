@@ -462,7 +462,7 @@ export default function PostHelp() {
                 {requesterFeature.trim() && <div><dt>あなたの特徴</dt><dd>{requesterFeature}</dd></div>}
               </dl>
               {approximateCoordinates && (
-                <p className="post-confirmation__privacy">現在地は約100m単位に丸めて保存されます。正確な位置情報は公開しません。</p>
+                <p className="post-confirmation__privacy">入力した場所・目印と、約100m単位に丸めた現在地は、ログイン済みのユーザーに公開されます。</p>
               )}
             </section>
           )}
@@ -534,7 +534,7 @@ export default function PostHelp() {
           <section className="post-location-dialog" role="dialog" aria-modal="true" aria-labelledby="location-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="post-location-dialog__icon" aria-hidden="true"><LocationIcon width={28} height={28} /></div>
             <h2 id="location-dialog-title">現在地から選びますか？</h2>
-            <p>次にブラウザとスマートフォンから位置情報の利用確認が表示されます。許可しても、正確な位置情報をそのまま公開することはありません。</p>
+            <p>次にブラウザとスマートフォンから位置情報の利用確認が表示されます。現在地は約100m単位に丸めて保存し、投稿後はログイン済みのユーザーに公開されます。</p>
             <ul>
               <li>保存する位置は約100m単位に丸めます</li>
               <li>取得後に「駅前の自動販売機の近く」などの目印を追記できます</li>
