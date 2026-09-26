@@ -57,9 +57,9 @@
 
 .welcome .splash__logo-image {
   display: block;
-  width: min(100%, 276px);
+  width: min(100%, 240px);
   height: auto;
-  margin: -48px auto -66px;
+  margin: -28px auto -30px;
 }
 
 .welcome .splash__tagline {

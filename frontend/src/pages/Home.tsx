@@ -79,7 +79,7 @@ export default function Home() {
           <h1 className="home-brand">
             <img
               src="/images/nearu-logo.png"
-              alt="Nearu — ちょっと困ったを、ちょっと助ける。"
+              alt="Nearu"
             />
           </h1>
           <Link className="home-profile" to="/mypage" aria-label="マイページを開く"><UserIcon /></Link>

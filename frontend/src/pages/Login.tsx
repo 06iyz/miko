@@ -67,11 +67,9 @@ export default function Login() {
           className="splash__logo-image"
           id="welcome-title"
           src="/images/nearu-logo.png"
-          alt="Nearu — ちょっと困ったを、ちょっと助ける。"
+          alt="Nearu"
         />
         <p className="splash__tagline">
-          <span>ちょっと困ったを</span>
-          <span>ちょっと助ける</span>
           <span>やさしい社会を、いっしょに。</span>
         </p>
       </div>
