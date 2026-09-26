@@ -35,7 +35,9 @@ export default function Home() {
           description: typeof data.description === 'string' ? data.description : '',
           category: (data.category || 'その他') as HelpCategory,
           type: data.type === 'teach' ? 'teach' : 'come',
-          imageUrl: typeof data.imageUrl === 'string' && /^https:\/\//.test(data.imageUrl) ? data.imageUrl : undefined,
+          imageUrl: typeof data.imageUrl === 'string' && /^https:\/\//.test(data.imageUrl)
+            ? data.imageUrl
+            : Array.isArray(data.imageUrls) && typeof data.imageUrls[0] === 'string' ? data.imageUrls[0] : undefined,
           distanceM: 0,
           postedMinutesAgo: 0,
           createdAtMs: data.createdAt?.toMillis?.() ?? Date.now(),
