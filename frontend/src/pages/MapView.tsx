@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
 import BottomNav from '../components/BottomNav'
 import { LocationIcon } from '../components/icons'
@@ -28,21 +28,17 @@ function MapViewport({ position }: { position: Position | null }) {
 
 export default function MapView() {
   const [position, setPosition] = useState<Position | null>(null)
-  const [locating, setLocating] = useState(false)
+  const [locating, setLocating] = useState(true)
   const [locationError, setLocationError] = useState('')
   const active = useRef(true)
   const requestPending = useRef(false)
 
-  useEffect(() => {
-    active.current = true
-    return () => { active.current = false }
-  }, [])
-
-  function locate() {
+  const locate = useCallback(() => {
     if (requestPending.current) return
     setLocationError('')
     if (!navigator.geolocation) {
       setLocationError('このブラウザでは現在地を取得できません。地図はそのまま操作できます。')
+      setLocating(false)
       return
     }
     requestPending.current = true
@@ -66,22 +62,28 @@ export default function MapView() {
           : '現在地を取得できませんでした。地図はそのまま操作できます。')
       setLocating(false)
     }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 })
-  }
+  }, [])
+
+  useEffect(() => {
+    active.current = true
+    locate()
+    return () => { active.current = false }
+  }, [locate])
 
   const coordinates: [number, number] | null = position ? [position.latitude, position.longitude] : null
 
   return (
     <div className="screen map-page">
       <header className="map-page__header">
-        <h1>地図</h1>
         <button type="button" className="btn btn--outline btn--sm map-page__locate" onClick={locate} disabled={locating}>
           <LocationIcon width={18} height={18} />
-          {locating ? '現在地を取得中...' : '現在地を表示'}
+          {locating ? '現在地を取得中...' : '現在地へ移動'}
         </button>
       </header>
       {locationError && <p className="map-page__error" role="alert">{locationError}</p>}
       <section className="map-page__canvas" aria-label="周辺の地図">
-        <MapContainer className="map-page__leaflet" center={DEFAULT_CENTER} zoom={14} scrollWheelZoom>
+        {locating && !position ? <p className="map-page__info" role="status">現在地を取得しています。位置情報の利用を許可してください。</p> : (
+        <MapContainer className="map-page__leaflet" center={coordinates ?? DEFAULT_CENTER} zoom={coordinates ? 16 : 14} scrollWheelZoom>
           <TileLayer
             attribution={'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
             url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -95,11 +97,8 @@ export default function MapView() {
             </CircleMarker>
           </>}
         </MapContainer>
+        )}
       </section>
-      <div className="map-page__info">
-        <p role="status">{locating ? '現在地を確認しています。' : position ? '現在地を表示しています。青緑の円は位置情報の誤差の目安です。' : '三宮周辺を表示しています。「現在地を表示」で自分の位置を確認できます。'}</p>
-        <p>Help投稿のピン表示は準備中です。</p>
-      </div>
       <BottomNav />
     </div>
   )
